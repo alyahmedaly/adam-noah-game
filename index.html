@@ -64,11 +64,18 @@
 
         this.spikes = this.physics.add.staticGroup();
 
+        this.gameOver = false;
+
+        this.physics.add.overlap(this.player, this.spikes, () => {
+          this.triggerGameOver();
+        });
+
         // Spawn on a random interval
         this.scheduleSpike();
       }
 
       update() {
+        if (this.gameOver) return;
         if (!this.player || !this.player.body) return;
         const onGround = this.player.body.blocked.down;
         const goLeft = this.cursors.left.isDown || this.wasd.left.isDown;
@@ -88,6 +95,35 @@
         if (jump && onGround) {
           this.player.setVelocityY(-520);
         }
+      }
+
+      triggerGameOver() {
+        if (this.gameOver) return;
+        this.gameOver = true;
+
+        this.player.setTint(0xff0000);
+        this.player.setVelocity(0, 0);
+        this.player.body.setAllowGravity(false);
+        this.time.removeAllEvents();
+
+        const cx = this.scale.width / 2;
+        const cy = this.scale.height / 2;
+
+        this.add.text(cx, cy - 30, 'GAME OVER', {
+          fontSize: '48px',
+          color: '#ff4444',
+          fontFamily: 'monospace'
+        }).setOrigin(0.5);
+
+        this.add.text(cx, cy + 30, 'Press R to restart', {
+          fontSize: '20px',
+          color: '#aaaaaa',
+          fontFamily: 'monospace'
+        }).setOrigin(0.5);
+
+        this.input.keyboard.once('keydown-R', () => {
+          this.scene.restart();
+        });
       }
 
       scheduleSpike() {
