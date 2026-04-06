@@ -53,6 +53,18 @@
           right: Phaser.Input.Keyboard.KeyCodes.D,
           up: Phaser.Input.Keyboard.KeyCodes.W
         });
+
+        // Spike texture (triangle)
+        const spikeGfx = this.make.graphics({ x: 0, y: 0, add: false });
+        spikeGfx.fillStyle(0xff4444, 1);
+        spikeGfx.fillTriangle(0, 32, 16, 0, 32, 32);
+        spikeGfx.generateTexture('spike', 32, 32);
+        spikeGfx.destroy();
+
+        this.spikes = this.physics.add.staticGroup();
+
+        // Spawn on a random interval
+        this.scheduleSpike();
       }
 
       update() {
@@ -75,6 +87,23 @@
         if (jump && onGround) {
           this.player.setVelocityY(-520);
         }
+      }
+
+      scheduleSpike() {
+        const delay = Phaser.Math.Between(1500, 2500);
+        this.time.delayedCall(delay, () => {
+          this.spawnSpike();
+          this.scheduleSpike();
+        });
+      }
+
+      spawnSpike() {
+        const x = Phaser.Math.Between(40, 760);
+        const groundY = 360;
+        const spike = this.spikes.create(x, groundY - 16, 'spike');
+        spike.setSize(24, 28);
+        spike.setOffset(4, 4);
+        spike.refreshBody();
       }
     }
 
