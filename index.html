@@ -153,6 +153,7 @@
         spike.setSize(24, 28);
         spike.setOffset(4, 4);
         spike.refreshBody();
+        this.time.delayedCall(20000, () => { if (spike?.active) spike.destroy(); });
       }
     }
 
