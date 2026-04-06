@@ -63,6 +63,20 @@ export class GameScene extends Phaser.Scene {
     this.gameOver = false;
     this.spikeOverlap = this.physics.add.overlap(this.player, this.spikes, this.triggerGameOver, null, this);
 
+    // Game title
+    this.add.text(400, 18, 'SPIKE GAME', {
+      fontSize: '20px',
+      color: '#ffffff',
+      fontFamily: 'monospace',
+      fontStyle: 'bold'
+    }).setOrigin(0.5, 0).setAlpha(0.7);
+
+    this.add.text(400, 42, 'by Adam & Noah', {
+      fontSize: '13px',
+      color: '#aaaaaa',
+      fontFamily: 'monospace'
+    }).setOrigin(0.5, 0).setAlpha(0.6);
+
     // Score (time survived)
     this.score = 0;
     this.scoreText = this.add.text(12, 12, 'Score: 0', {
