@@ -1,77 +1,11 @@
-export const PLAYER_SOUND_BANKS = {
-  adam: {
-    dies: {
-      key: 'adam.dies',
-      path: 'sounds/adam/dies.wav',
-    },
-    hurt: {
-      key: 'adam.hurt',
-      path: 'sounds/adam/spike-hit.wav',
-    },
-    luckyBlock: {
-      key: 'adam.luckyBlock',
-      path: 'sounds/adam/lucky-block.wav',
-    },
-    heartAdded: {
-      key: 'adam.heartAdded',
-      path: 'sounds/adam/heart-added.wav',
-    },
-    jump: null,
-    win: {
-      key: 'adam.win',
-      path: 'sounds/adam/win.wav',
-    },
-  },
-  noah: {
-    dies: {
-      key: 'noah.dies',
-      path: 'sounds/noah/dies.wav',
-    },
-    hurt: {
-      key: 'noah.hurt',
-      path: 'sounds/noah/spike-hit.wav',
-    },
-    luckyBlock: {
-      key: 'noah.luckyBlock',
-      path: 'sounds/noah/lucky-block.wav',
-    },
-    heartAdded: {
-      key: 'noah.heartAdded',
-      path: 'sounds/noah/heart-added.wav',
-    },
-    jump: null,
-    win: {
-      key: 'noah.win',
-      path: 'sounds/noah/win.wav',
-    },
-  },
-};
+import {
+  PLAYER_SOUND_EVENTS,
+  getPlayerName,
+  getPlayerSoundDefinition,
+  getRegisteredPlayerSounds,
+} from './audio-registry.js';
 
-export function preloadPlayerSounds(scene) {
-  for (const bank of Object.values(PLAYER_SOUND_BANKS)) {
-    for (const sound of Object.values(bank)) {
-      if (!sound) continue;
-      scene.load.audio(sound.key, sound.path);
-    }
-  }
-}
-
-export function createPlayerSoundHandles(scene) {
-  const handles = {};
-
-  for (const [playerName, bank] of Object.entries(PLAYER_SOUND_BANKS)) {
-    handles[playerName] = {};
-
-    for (const [eventName, sound] of Object.entries(bank)) {
-      handles[playerName][eventName] = sound ? scene.sound.add(sound.key) : null;
-    }
-  }
-
-  return handles;
-}
-
-export function playPlayerSound(scene, playerName, eventName) {
-  const sound = scene.playerSounds?.[playerName]?.[eventName];
+function playHandle(sound) {
   if (!sound) return;
 
   if (sound.isPlaying) {
@@ -80,3 +14,41 @@ export function playPlayerSound(scene, playerName, eventName) {
 
   sound.play();
 }
+
+export function preloadSceneAudio(scene) {
+  for (const sound of getRegisteredPlayerSounds()) {
+    scene.load.audio(sound.key, sound.path);
+  }
+}
+
+export function attachSceneAudio(scene) {
+  const handles = new Map();
+
+  for (const sound of getRegisteredPlayerSounds()) {
+    handles.set(sound.key, scene.sound.add(sound.key));
+  }
+
+  scene.audio = {
+    playForPlayer(playerNum, eventName) {
+      const playerName = getPlayerName(playerNum);
+      if (!playerName) return;
+
+      this.playForName(playerName, eventName);
+    },
+    playForName(playerName, eventName) {
+      const definition = getPlayerSoundDefinition(playerName, eventName);
+      if (!definition) return;
+
+      playHandle(handles.get(definition.key));
+    },
+    playForWinner(winnerName) {
+      if (!winnerName) return;
+
+      this.playForName(winnerName, PLAYER_SOUND_EVENTS.WIN);
+    },
+  };
+
+  return scene.audio;
+}
+
+export { PLAYER_SOUND_EVENTS };

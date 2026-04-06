@@ -1,5 +1,5 @@
 import { getBest, saveBestIfBeaten } from './records.js';
-import { playPlayerSound } from './audio.js';
+import { getWinnerName } from './audio-registry.js';
 
 export function createTitle(scene) {
   scene.add.text(400, 18, 'SPIKE GAME', {
@@ -79,17 +79,18 @@ export function showGameOver(scene) {
   const noahScore = scene.score2;
   const adamNewBest = saveBestIfBeaten('adam', adamScore);
   const noahNewBest = saveBestIfBeaten('noah', noahScore);
+  const winnerName = getWinnerName(adamScore, noahScore);
 
   let winnerText;
-  if (adamScore > noahScore) {
+  if (winnerName === 'adam') {
     winnerText = 'Adam wins!';
-    playPlayerSound(scene, 'adam', 'win');
-  } else if (noahScore > adamScore) {
+  } else if (winnerName === 'noah') {
     winnerText = 'Noah wins!';
-    playPlayerSound(scene, 'noah', 'win');
   } else {
     winnerText = "It's a tie!";
   }
+
+  scene.audio.playForWinner(winnerName);
 
   scene.add.text(cx, cy - 90, 'GAME OVER', {
     fontSize: '48px', color: '#ff4444', fontFamily: 'monospace'

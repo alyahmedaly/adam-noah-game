@@ -1,4 +1,4 @@
-import { playPlayerSound } from './audio.js';
+import { PLAYER_SOUND_EVENTS } from './audio.js';
 import { givePistol } from './pistol.js';
 
 const BLOCK_SIZE = 32;
@@ -66,9 +66,8 @@ function hitBlock(scene, block, playerNum) {
 function activateSuperpower(scene, playerNum) {
   const player = playerNum === 1 ? scene.player1 : scene.player2;
   const color  = playerNum === 1 ? (scene.color1 ?? 0x00aaff) : (scene.color2 ?? 0x00cc44);
-  const playerName = playerNum === 1 ? 'adam' : 'noah';
 
-  playPlayerSound(scene, playerName, 'luckyBlock');
+  scene.audio.playForPlayer(playerNum, PLAYER_SOUND_EVENTS.LUCKY_BLOCK);
 
   // In Ninja mode: give pistol instead of spike-clear
   if (scene.difficulty === 'ninja' && scene.boss?.active) {

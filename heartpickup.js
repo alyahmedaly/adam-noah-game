@@ -1,4 +1,4 @@
-import { playPlayerSound } from './audio.js';
+import { PLAYER_SOUND_EVENTS } from './audio.js';
 
 const HEART_SIZE = 24;
 
@@ -64,7 +64,6 @@ function collectHeart(scene, heart, playerNum) {
   if (heart.collected) return;
   const lives = playerNum === 1 ? scene.lives1 : scene.lives2;
   if (lives >= scene.maxLives) return; // already full
-  const playerName = playerNum === 1 ? 'adam' : 'noah';
 
   heart.collected = true;
   scene.tweens.killTweensOf(heart);
@@ -79,7 +78,7 @@ function collectHeart(scene, heart, playerNum) {
 
   // Update HUD
   scene.updateLivesHUD();
-  playPlayerSound(scene, playerName, 'heartAdded');
+  scene.audio.playForPlayer(playerNum, PLAYER_SOUND_EVENTS.HEART_ADDED);
 
   // Floating text
   const player = playerNum === 1 ? scene.player1 : scene.player2;
