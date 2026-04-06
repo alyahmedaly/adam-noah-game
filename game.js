@@ -31,12 +31,29 @@ export class GameScene extends Phaser.Scene {
     groundBody.setSize(800, groundHeight);
     groundBody.refreshBody();
 
-    // Player
+    // Player — human-like figure (24x48 canvas)
     const PLAYER_H = 48;
     const playerGfx = this.make.graphics({ x: 0, y: 0, add: false });
-    playerGfx.fillStyle(0x00d4ff, 1);
-    playerGfx.fillRect(0, 0, 32, PLAYER_H);
-    playerGfx.generateTexture('player', 32, PLAYER_H);
+
+    // Head
+    playerGfx.fillStyle(0xffd700, 1);
+    playerGfx.fillCircle(12, 7, 7);
+
+    // Body
+    playerGfx.fillStyle(0x00aaff, 1);
+    playerGfx.fillRect(7, 14, 10, 16);
+
+    // Arms
+    playerGfx.fillStyle(0x00aaff, 1);
+    playerGfx.fillRect(1, 14, 6, 4);   // left arm
+    playerGfx.fillRect(17, 14, 6, 4);  // right arm
+
+    // Legs
+    playerGfx.fillStyle(0x333333, 1);
+    playerGfx.fillRect(7, 30, 4, 18);  // left leg
+    playerGfx.fillRect(13, 30, 4, 18); // right leg
+
+    playerGfx.generateTexture('player', 24, PLAYER_H);
     playerGfx.destroy();
 
     this.player = this.physics.add.sprite(100, groundY - PLAYER_H / 2, 'player');
