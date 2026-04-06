@@ -1,4 +1,5 @@
 import { getBest, saveBestIfBeaten } from './records.js';
+import { playPlayerSound } from './audio.js';
 
 export function createTitle(scene) {
   scene.add.text(400, 18, 'SPIKE GAME', {
@@ -80,9 +81,15 @@ export function showGameOver(scene) {
   const noahNewBest = saveBestIfBeaten('noah', noahScore);
 
   let winnerText;
-  if (adamScore > noahScore)       winnerText = 'Adam wins!';
-  else if (noahScore > adamScore)  winnerText = 'Noah wins!';
-  else                             winnerText = "It's a tie!";
+  if (adamScore > noahScore) {
+    winnerText = 'Adam wins!';
+    playPlayerSound(scene, 'adam', 'win');
+  } else if (noahScore > adamScore) {
+    winnerText = 'Noah wins!';
+    playPlayerSound(scene, 'noah', 'win');
+  } else {
+    winnerText = "It's a tie!";
+  }
 
   scene.add.text(cx, cy - 90, 'GAME OVER', {
     fontSize: '48px', color: '#ff4444', fontFamily: 'monospace'

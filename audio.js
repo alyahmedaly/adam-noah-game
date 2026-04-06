@@ -17,7 +17,10 @@ export const PLAYER_SOUND_BANKS = {
       path: 'sounds/adam/heart-added.wav',
     },
     jump: null,
-    win: null,
+    win: {
+      key: 'adam.win',
+      path: 'sounds/adam/win.wav',
+    },
   },
   noah: {
     dies: {
@@ -37,7 +40,10 @@ export const PLAYER_SOUND_BANKS = {
       path: 'sounds/noah/heart-added.wav',
     },
     jump: null,
-    win: null,
+    win: {
+      key: 'noah.win',
+      path: 'sounds/noah/win.wav',
+    },
   },
 };
 
