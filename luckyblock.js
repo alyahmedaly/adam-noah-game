@@ -1,4 +1,5 @@
 import { playPlayerSound } from './audio.js';
+import { givePistol } from './pistol.js';
 
 const BLOCK_SIZE = 32;
 const FLOAT_Y_OFFSET = 120;
@@ -68,6 +69,23 @@ function activateSuperpower(scene, playerNum) {
   const playerName = playerNum === 1 ? 'adam' : 'noah';
 
   playPlayerSound(scene, playerName, 'luckyBlock');
+
+  // In Ninja mode: give pistol instead of spike-clear
+  if (scene.difficulty === 'ninja' && scene.boss?.active) {
+    givePistol(scene, playerNum);
+    player.setTint(0xffd700);
+    const txt = scene.add.text(player.x, player.y - 40, '🔫 PISTOL!', {
+      fontSize: '14px', color: '#ffee00', fontFamily: 'monospace'
+    }).setOrigin(0.5).setDepth(4);
+    scene.tweens.add({
+      targets: txt, y: txt.y - 30, alpha: 0, duration: 1200,
+      onComplete: () => txt.destroy()
+    });
+    scene.time.delayedCall(Phaser.Math.Between(8000, 15000), () => {
+      if (!scene.gameOver) spawnLuckyBlock(scene);
+    });
+    return;
+  }
 
   // Clear all current spikes
   scene.spikes.clear(true, true);

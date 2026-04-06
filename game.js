@@ -5,6 +5,8 @@ import { createTitle, createScore, createLivesHUD, updateLivesHUD, showPlayerDea
 import { createLuckyBlockTexture, spawnLuckyBlock, scheduleLuckyBlockRespawns } from './luckyblock.js';
 import { createHeartTexture, scheduleHeartSpawns } from './heartpickup.js';
 import { createPlayerSoundHandles, playPlayerSound, preloadPlayerSounds } from './audio.js';
+import { spawnBoss, updateBoss } from './boss.js';
+import { updatePistol } from './pistol.js';
 
 const DIFFICULTY = {
   noob:   { maxLives: 5, color1: 0xff8800, color2: 0xffcc00, nameColor1: '#ff8800', nameColor2: '#ffcc00' },
@@ -75,6 +77,10 @@ export class GameScene extends Phaser.Scene {
 
     // Expose lives HUD updater for pickups
     this.updateLivesHUD = () => updateLivesHUD(this, this.lives1, this.lives2);
+
+    // Boss state (Ninja mode)
+    this.boss = null;
+    this.bossSpawned = false;
   }
 
   update() {
@@ -85,6 +91,15 @@ export class GameScene extends Phaser.Scene {
       this.wasd,
       this.cursors
     );
+
+    // Spawn boss in Ninja mode when score hits 50
+    if (this.difficulty === 'ninja' && !this.bossSpawned && this.score >= 50) {
+      this.bossSpawned = true;
+      spawnBoss(this);
+    }
+
+    updateBoss(this);
+    updatePistol(this, this.wasd, this.cursors);
   }
 
   loseLife(num) {
