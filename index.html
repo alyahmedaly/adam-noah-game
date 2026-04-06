@@ -146,7 +146,7 @@
 
       spawnSpike() {
         if (this.spikes.getLength() >= 12) {
-          this.spikes.getFirstAlive(false)?.destroy();
+          this.spikes.getFirst()?.destroy();
         }
         const x = Phaser.Math.Between(40, 760);
         const spike = this.spikes.create(x, this.groundY - 16, 'spike');
