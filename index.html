@@ -30,7 +30,6 @@
 
         this.ground = this.physics.add.staticGroup();
         const groundBody = this.ground.create(400, groundY + groundHeight / 2, null);
-        groundBody.setVisible(false);
         groundBody.setSize(800, groundHeight);
         groundBody.refreshBody();
       }
