@@ -19,7 +19,21 @@
 
       preload() {}
 
-      create() {}
+      create() {
+        // Ground
+        const groundY = 360;
+        const groundHeight = 40;
+
+        const groundGfx = this.add.graphics();
+        groundGfx.fillStyle(0x4a4a6a, 1);
+        groundGfx.fillRect(0, groundY, 800, groundHeight);
+
+        this.ground = this.physics.add.staticGroup();
+        const groundBody = this.ground.create(400, groundY + groundHeight / 2, null);
+        groundBody.setVisible(false);
+        groundBody.setSize(800, groundHeight);
+        groundBody.refreshBody();
+      }
 
       update() {}
     }
