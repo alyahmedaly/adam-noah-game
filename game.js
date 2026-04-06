@@ -82,10 +82,10 @@ export class GameScene extends Phaser.Scene {
     this.cursors = this.input.keyboard.createCursorKeys();
 
     // Player labels
-    this.add.text(100, groundY - PLAYER_H - 18, 'P1', {
+    this.add.text(100, groundY - PLAYER_H - 18, 'Adam', {
       fontSize: '12px', color: '#00aaff', fontFamily: 'monospace'
     }).setOrigin(0.5);
-    this.add.text(700, groundY - PLAYER_H - 18, 'P2', {
+    this.add.text(700, groundY - PLAYER_H - 18, 'Noah', {
       fontSize: '12px', color: '#00cc44', fontFamily: 'monospace'
     }).setOrigin(0.5);
 
@@ -99,8 +99,8 @@ export class GameScene extends Phaser.Scene {
     this.spikes = this.physics.add.staticGroup();
     this.gameOver = false;
 
-    this.spike1Overlap = this.physics.add.overlap(this.player1, this.spikes, () => this.triggerGameOver('P2 wins!'), null, this);
-    this.spike2Overlap = this.physics.add.overlap(this.player2, this.spikes, () => this.triggerGameOver('P1 wins!'), null, this);
+    this.spike1Overlap = this.physics.add.overlap(this.player1, this.spikes, () => this.triggerGameOver('Noah wins!'), null, this);
+    this.spike2Overlap = this.physics.add.overlap(this.player2, this.spikes, () => this.triggerGameOver('Adam wins!'), null, this);
 
     // Game title
     this.add.text(400, 18, 'SPIKE GAME', {
