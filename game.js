@@ -89,21 +89,14 @@ export class GameScene extends Phaser.Scene {
       fontSize: '12px', color: '#00cc44', fontFamily: 'monospace'
     }).setOrigin(0.5);
 
-    // Spike texture — pointing up
+    // Spike texture
     const spikeGfx = this.make.graphics({ x: 0, y: 0, add: false });
     spikeGfx.fillStyle(0xff4444, 1);
     spikeGfx.fillTriangle(0, 32, 16, 0, 32, 32);
     spikeGfx.generateTexture('spike', 32, 32);
     spikeGfx.destroy();
 
-    // Spike texture — pointing down
-    const spikeDownGfx = this.make.graphics({ x: 0, y: 0, add: false });
-    spikeDownGfx.fillStyle(0xff6666, 1);
-    spikeDownGfx.fillTriangle(0, 0, 16, 32, 32, 0);
-    spikeDownGfx.generateTexture('spike-down', 32, 32);
-    spikeDownGfx.destroy();
-
-    this.spikes = this.physics.add.staticGroup({ maxSize: 60 });
+    this.spikes = this.physics.add.staticGroup();
     this.gameOver = false;
 
     this.spike1Overlap = this.physics.add.overlap(this.player1, this.spikes, () => this.triggerGameOver('Noah wins!'), null, this);
@@ -222,37 +215,22 @@ export class GameScene extends Phaser.Scene {
   }
 
   spawnSpike() {
-    // Pick a base x away from both players
-    const exclusion = 80;
-    let baseX;
-    do {
-      baseX = Phaser.Math.Between(80, 720);
-    } while (
-      Math.abs(baseX - this.player1.x) < exclusion ||
-      Math.abs(baseX - this.player2.x) < exclusion
-    );
-
-    // Spawn 3 double-spike pairs side by side (spacing 36px)
-    const spacing = 36;
-    for (let i = 0; i < 3; i++) {
-      const x = baseX + (i - 1) * spacing;
-
-      // Bottom spike — pointing up, sitting on the ground
-      const spikeUp = this.spikes.create(x, this.groundY - 16, 'spike');
-      spikeUp.setSize(24, 28);
-      spikeUp.setOffset(4, 4);
-      spikeUp.refreshBody();
-
-      // Top spike — pointing down, sitting just above the bottom spike
-      const spikeDown = this.spikes.create(x, this.groundY - 48, 'spike-down');
-      spikeDown.setSize(24, 28);
-      spikeDown.setOffset(4, 0);
-      spikeDown.refreshBody();
-
-      this.time.delayedCall(20000, () => {
-        if (spikeUp?.active) spikeUp.destroy();
-        if (spikeDown?.active) spikeDown.destroy();
-      });
+    if (this.spikes.getLength() >= 12) {
+      this.spikes.getFirst()?.destroy();
     }
+    // Avoid spawning on either player
+    const exclusion = 60;
+    let x;
+    do {
+      x = Phaser.Math.Between(40, 760);
+    } while (
+      Math.abs(x - this.player1.x) < exclusion ||
+      Math.abs(x - this.player2.x) < exclusion
+    );
+    const spike = this.spikes.create(x, this.groundY - 16, 'spike');
+    spike.setSize(24, 28);
+    spike.setOffset(4, 4);
+    spike.refreshBody();
+    this.time.delayedCall(20000, () => { if (spike?.active) spike.destroy(); });
   }
 }
