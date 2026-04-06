@@ -1,3 +1,5 @@
+import { PLAYER_SOUND_EVENTS } from './audio.js';
+
 const PLAYER_H = 48;
 const GAMEPAD_AXIS_DEADZONE = 0.35;
 const GAMEPAD_JUMP_AXIS_THRESHOLD = -0.6;
@@ -158,6 +160,7 @@ export function handlePlayerBump(scene) {
   scene._lastPlayerBumpAt = scene.time.now;
 
   const { attacker, defender, direction } = outcome;
+  const attackerNum = attacker === scene.player1 ? 1 : 2;
   defender.setVelocityX(direction * PLAYER_BUMP_PUSH_X);
   defender.setVelocityY(PLAYER_BUMP_PUSH_Y);
   attacker.setVelocityX(-direction * PLAYER_BUMP_RECOIL_X);
@@ -168,6 +171,7 @@ export function handlePlayerBump(scene) {
   defender.juiceY = 1.18;
 
   scene.cameras?.main?.shake(90, 0.0025);
+  scene.audio?.playForPlayer(attackerNum, PLAYER_SOUND_EVENTS.BUMP);
   showBumpEffect(scene, attacker, defender);
 }
 

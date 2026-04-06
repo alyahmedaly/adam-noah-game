@@ -23,12 +23,19 @@ test('reports the winner name from final scores', () => {
 test('returns only registered wav-backed sounds', () => {
   const registered = getRegisteredPlayerSounds();
 
-  assert.ok(registered.length >= 10);
+  assert.ok(registered.length >= 12);
   assert.deepEqual(
     getPlayerSoundDefinition('adam', PLAYER_SOUND_EVENTS.WIN),
     {
       key: 'adam.win',
       path: 'sounds/adam/win.wav',
+    }
+  );
+  assert.deepEqual(
+    getPlayerSoundDefinition('adam', PLAYER_SOUND_EVENTS.BUMP),
+    {
+      key: 'adam.bump',
+      path: 'sounds/adam/adam-touch-noah.wav',
     }
   );
   assert.equal(getPlayerSoundDefinition('adam', PLAYER_SOUND_EVENTS.JUMP), null);

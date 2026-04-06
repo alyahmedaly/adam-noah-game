@@ -3,6 +3,7 @@ export const PLAYER_SOUND_EVENTS = Object.freeze({
   HURT: 'hurt',
   LUCKY_BLOCK: 'luckyBlock',
   HEART_ADDED: 'heartAdded',
+  BUMP: 'bump',
   JUMP: 'jump',
   WIN: 'win',
 });
@@ -18,6 +19,7 @@ const PLAYER_SOUND_FILES = Object.freeze({
     [PLAYER_SOUND_EVENTS.HURT]: 'sounds/adam/spike-hit.wav',
     [PLAYER_SOUND_EVENTS.LUCKY_BLOCK]: 'sounds/adam/lucky-block.wav',
     [PLAYER_SOUND_EVENTS.HEART_ADDED]: 'sounds/adam/heart-added.wav',
+    [PLAYER_SOUND_EVENTS.BUMP]: 'sounds/adam/adam-touch-noah.wav',
     [PLAYER_SOUND_EVENTS.JUMP]: null,
     [PLAYER_SOUND_EVENTS.WIN]: 'sounds/adam/win.wav',
   }),
@@ -26,6 +28,7 @@ const PLAYER_SOUND_FILES = Object.freeze({
     [PLAYER_SOUND_EVENTS.HURT]: 'sounds/noah/spike-hit.wav',
     [PLAYER_SOUND_EVENTS.LUCKY_BLOCK]: 'sounds/noah/lucky-block.wav',
     [PLAYER_SOUND_EVENTS.HEART_ADDED]: 'sounds/noah/heart-added.wav',
+    [PLAYER_SOUND_EVENTS.BUMP]: 'sounds/noah/noah-touch-adam.wav',
     [PLAYER_SOUND_EVENTS.JUMP]: null,
     [PLAYER_SOUND_EVENTS.WIN]: 'sounds/noah/win.wav',
   }),
