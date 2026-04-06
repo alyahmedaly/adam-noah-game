@@ -54,7 +54,8 @@ export function createLivesHUD(scene) {
 }
 
 export function updateLivesHUD(scene, adamLives, noahLives) {
-  const hearts = n => '❤️'.repeat(Math.max(0, n)) + '🖤'.repeat(Math.max(0, 3 - n));
+  const max = scene.maxLives ?? 3;
+  const hearts = n => '❤️'.repeat(Math.max(0, n)) + '🖤'.repeat(Math.max(0, max - n));
   scene.livesTexts.adam.setText(hearts(adamLives) + ' Adam');
   scene.livesTexts.noah.setText('Noah ' + hearts(noahLives));
 }

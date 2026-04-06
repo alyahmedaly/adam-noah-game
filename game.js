@@ -5,7 +5,12 @@ import { createTitle, createScore, createLivesHUD, updateLivesHUD, showPlayerDea
 import { createLuckyBlockTexture, spawnLuckyBlock, scheduleLuckyBlockRespawns } from './luckyblock.js';
 import { createHeartTexture, scheduleHeartSpawns } from './heartpickup.js';
 
-const MAX_LIVES = 3;
+const DIFFICULTY = {
+  noob:   { maxLives: 5 },
+  normal: { maxLives: 3 },
+  ninja:  { maxLives: 2 },
+};
+
 const RESPAWN_INVINCIBILITY_MS = 2000;
 
 export class GameScene extends Phaser.Scene {
@@ -16,6 +21,10 @@ export class GameScene extends Phaser.Scene {
   preload() {}
 
   create() {
+    const diff = this.scene.settings.data?.difficulty || 'normal';
+    this.difficulty = diff;
+    this.maxLives = DIFFICULTY[diff]?.maxLives ?? 3;
+
     this.groundY = 360;
     const groundHeight = 40;
 
@@ -33,8 +42,8 @@ export class GameScene extends Phaser.Scene {
     this.gameOver = false;
     this.player1Dead = false;
     this.player2Dead = false;
-    this.lives1 = MAX_LIVES;
-    this.lives2 = MAX_LIVES;
+    this.lives1 = this.maxLives;
+    this.lives2 = this.maxLives;
 
     this.spike1Overlap = this.physics.add.overlap(
       this.player1, this.spikes, () => this.loseLife(1), null, this

@@ -26,7 +26,7 @@ export function scheduleHeartSpawns(scene) {
     loop: false,
     callback: () => {
       if (!scene.gameOver) {
-        if (scene.lives1 < 3 || scene.lives2 < 3) {
+        if (scene.lives1 < scene.maxLives || scene.lives2 < scene.maxLives) {
           spawnHeart(scene);
         }
         scheduleHeartSpawns(scene); // re-schedule
@@ -61,7 +61,7 @@ function spawnHeart(scene) {
 function collectHeart(scene, heart, playerNum) {
   if (heart.collected) return;
   const lives = playerNum === 1 ? scene.lives1 : scene.lives2;
-  if (lives >= 3) return; // already full
+  if (lives >= scene.maxLives) return; // already full
 
   heart.collected = true;
   scene.tweens.killTweensOf(heart);
@@ -69,9 +69,9 @@ function collectHeart(scene, heart, playerNum) {
 
   // Restore one life
   if (playerNum === 1) {
-    scene.lives1 = Math.min(3, scene.lives1 + 1);
+    scene.lives1 = Math.min(scene.maxLives, scene.lives1 + 1);
   } else {
-    scene.lives2 = Math.min(3, scene.lives2 + 1);
+    scene.lives2 = Math.min(scene.maxLives, scene.lives2 + 1);
   }
 
   // Update HUD
