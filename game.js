@@ -1,5 +1,5 @@
 import { createBackground, createGround, updateBackground } from './background.js';
-import { createPlayers, updatePlayers } from './players.js';
+import { createPlayers, handlePlayerBump, updatePlayers } from './players.js';
 import { createSpikeTexture, scheduleSpike, updateSpikes } from './spikes.js';
 import { createTitle, createScore, createLivesHUD, updateLivesHUD, showPlayerDead, showGameOver } from './ui.js';
 import { createLuckyBlockTexture, spawnLuckyBlock, scheduleLuckyBlockRespawns } from './luckyblock.js';
@@ -63,6 +63,13 @@ export class GameScene extends Phaser.Scene {
     );
     this.spike2Overlap = this.physics.add.overlap(
       this.player2, this.spikes, () => this.loseLife(2), null, this
+    );
+    this.playerBumpCollider = this.physics.add.collider(
+      this.player1,
+      this.player2,
+      () => handlePlayerBump(this),
+      null,
+      this
     );
 
     createLuckyBlockTexture(this);

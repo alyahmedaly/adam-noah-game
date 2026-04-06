@@ -1,4 +1,11 @@
 const PLAYER_H = 48;
+const GAMEPAD_AXIS_DEADZONE = 0.35;
+const GAMEPAD_JUMP_AXIS_THRESHOLD = -0.6;
+const PLAYER_BUMP_SPEED_THRESHOLD = 80;
+const PLAYER_BUMP_PUSH_X = 165;
+const PLAYER_BUMP_PUSH_Y = -120;
+const PLAYER_BUMP_RECOIL_X = 35;
+const PLAYER_BUMP_COOLDOWN_MS = 320;
 
 // ── Texture generators ───────────────────────────────────────────────────────
 
@@ -137,11 +144,185 @@ export function createPlayers(scene, groundY, ground) {
 }
 
 export function updatePlayers(scene, player1, player2, wasd, cursors) {
-  movePlayer(scene, player1, wasd.left.isDown, wasd.right.isDown,
-    Phaser.Input.Keyboard.JustDown(wasd.up));
+  const adamInput = getAdamInput(scene, wasd);
+  movePlayer(scene, player1, adamInput.left, adamInput.right, adamInput.jump);
 
   movePlayer(scene, player2, cursors.left.isDown, cursors.right.isDown,
     Phaser.Input.Keyboard.JustDown(cursors.up));
+}
+
+export function handlePlayerBump(scene) {
+  const outcome = getPlayerBumpOutcome(scene, scene?.player1, scene?.player2);
+  if (!outcome) return;
+
+  scene._lastPlayerBumpAt = scene.time.now;
+
+  const { attacker, defender, direction } = outcome;
+  defender.setVelocityX(direction * PLAYER_BUMP_PUSH_X);
+  defender.setVelocityY(PLAYER_BUMP_PUSH_Y);
+  attacker.setVelocityX(-direction * PLAYER_BUMP_RECOIL_X);
+
+  attacker.juiceX = 1.08;
+  attacker.juiceY = 0.92;
+  defender.juiceX = 0.82;
+  defender.juiceY = 1.18;
+
+  scene.cameras?.main?.shake(90, 0.0025);
+  showBumpEffect(scene, attacker, defender);
+}
+
+export function getPlayerBumpOutcome(scene, player1, player2) {
+  if (!player1?.body || !player2?.body) return null;
+  if (scene?.player1Dead || scene?.player2Dead || scene?.gameOver) return null;
+
+  const now = scene?.time?.now ?? 0;
+  const lastBumpAt = scene?._lastPlayerBumpAt ?? -Infinity;
+  if (now - lastBumpAt < PLAYER_BUMP_COOLDOWN_MS) return null;
+
+  if (!isGrounded(player1) || !isGrounded(player2)) return null;
+
+  const p1VelocityX = player1.body.velocity?.x ?? 0;
+  const p2VelocityX = player2.body.velocity?.x ?? 0;
+  const p1MovingRight = p1VelocityX > PLAYER_BUMP_SPEED_THRESHOLD;
+  const p1MovingLeft = p1VelocityX < -PLAYER_BUMP_SPEED_THRESHOLD;
+  const p2MovingRight = p2VelocityX > PLAYER_BUMP_SPEED_THRESHOLD;
+  const p2MovingLeft = p2VelocityX < -PLAYER_BUMP_SPEED_THRESHOLD;
+
+  if ((p1MovingRight && p2MovingLeft) || (p1MovingLeft && p2MovingRight)) {
+    return null;
+  }
+
+  const p1OnLeft = player1.x <= player2.x;
+  if (p1OnLeft && p1MovingRight) {
+    return { attacker: player1, defender: player2, direction: 1 };
+  }
+
+  if (!p1OnLeft && p1MovingLeft) {
+    return { attacker: player1, defender: player2, direction: -1 };
+  }
+
+  if (p1OnLeft && p2MovingLeft) {
+    return { attacker: player2, defender: player1, direction: -1 };
+  }
+
+  if (!p1OnLeft && p2MovingRight) {
+    return { attacker: player2, defender: player1, direction: 1 };
+  }
+
+  return null;
+}
+
+export function getAdamInput(scene, wasd) {
+  const keyboardLeft = Boolean(wasd?.left?.isDown);
+  const keyboardRight = Boolean(wasd?.right?.isDown);
+  const keyboardJump = Boolean(wasd?.up && Phaser.Input.Keyboard.JustDown(wasd.up));
+
+  const gamepad = getPrimaryGamepad(scene);
+  const axisX = getGamepadAxis(gamepad, 0, 'x');
+  const axisY = getGamepadAxis(gamepad, 1, 'y');
+  const buttonJump = Boolean(gamepad?.A) || isGamepadButtonPressed(gamepad, 0);
+  const axisJump = axisY <= GAMEPAD_JUMP_AXIS_THRESHOLD;
+
+  return {
+    left: keyboardLeft || isDirectionalPressed(gamepad, 'left') || axisX <= -GAMEPAD_AXIS_DEADZONE,
+    right: keyboardRight || isDirectionalPressed(gamepad, 'right') || axisX >= GAMEPAD_AXIS_DEADZONE,
+    jump: keyboardJump || isFreshGamepadJump(scene, buttonJump || isDirectionalPressed(gamepad, 'up') || axisJump),
+  };
+}
+
+function getPrimaryGamepad(scene) {
+  const manager = scene?.input?.gamepad;
+  if (!manager || manager.enabled === false) return null;
+
+  const pads = [];
+  const primaryPad = manager.getPad?.(0) ?? manager.pad1;
+
+  if (primaryPad) pads.push(primaryPad);
+
+  if (typeof manager.getAll === 'function') {
+    pads.push(...manager.getAll());
+  }
+
+  if (Array.isArray(manager.gamepads)) {
+    pads.push(...manager.gamepads);
+  }
+
+  const connectedPad = pads.find((pad) => pad && pad.connected !== false);
+  return connectedPad ?? getBrowserGamepad();
+}
+
+function getBrowserGamepad() {
+  if (typeof navigator?.getGamepads !== 'function') return null;
+  const gamepads = navigator.getGamepads();
+  return Array.from(gamepads ?? []).find((pad) => pad && pad.connected !== false) ?? null;
+}
+
+function normalizeAxis(value) {
+  return typeof value === 'number' ? value : 0;
+}
+
+function getGamepadAxis(gamepad, axisIndex, stickAxis) {
+  const stickValue = gamepad?.leftStick?.[stickAxis];
+  const axis = gamepad?.axes?.[axisIndex];
+  return normalizeAxis(typeof stickValue === 'number' ? stickValue : axis?.getValue?.() ?? axis);
+}
+
+function isGamepadButtonPressed(gamepad, index) {
+  if (typeof gamepad?.isButtonDown === 'function') {
+    return gamepad.isButtonDown(index);
+  }
+
+  const button = gamepad?.buttons?.[index];
+  return Boolean(button?.pressed || button?.value > 0.5);
+}
+
+function isDirectionalPressed(gamepad, direction) {
+  if (!gamepad) return false;
+
+  if (Boolean(gamepad[direction])) return true;
+
+  const directionButtonIndex = {
+    up: 12,
+    left: 14,
+    right: 15,
+  }[direction];
+
+  return typeof directionButtonIndex === 'number'
+    ? isGamepadButtonPressed(gamepad, directionButtonIndex)
+    : false;
+}
+
+function isFreshGamepadJump(scene, isPressed) {
+  const wasPressed = scene._adamGamepadJumpPressed ?? false;
+  scene._adamGamepadJumpPressed = isPressed;
+  return isPressed && !wasPressed;
+}
+
+function isGrounded(player) {
+  return Boolean(player?.body?.blocked?.down || player?.body?.touching?.down);
+}
+
+function showBumpEffect(scene, attacker, defender) {
+  const midX = (attacker.x + defender.x) / 2;
+  const midY = Math.min(attacker.y, defender.y) - 26;
+  const text = scene.add.text(midX, midY, 'BONK!', {
+    fontFamily: 'monospace',
+    fontSize: '14px',
+    color: '#fff7b2',
+    stroke: '#3a1f5d',
+    strokeThickness: 4,
+  }).setOrigin(0.5).setRotation(Phaser.Math.FloatBetween(-0.18, 0.18));
+
+  scene.tweens.add({
+    targets: text,
+    y: midY - 18,
+    alpha: 0,
+    scaleX: 1.12,
+    scaleY: 1.12,
+    duration: 260,
+    ease: 'Quad.easeOut',
+    onComplete: () => text.destroy(),
+  });
 }
 
 function movePlayer(scene, player, goLeft, goRight, jump) {
