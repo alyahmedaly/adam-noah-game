@@ -63,6 +63,25 @@ export class GameScene extends Phaser.Scene {
     this.gameOver = false;
     this.spikeOverlap = this.physics.add.overlap(this.player, this.spikes, this.triggerGameOver, null, this);
 
+    // Score (time survived)
+    this.score = 0;
+    this.scoreText = this.add.text(12, 12, 'Score: 0', {
+      fontSize: '18px',
+      color: '#ffffff',
+      fontFamily: 'monospace'
+    }).setDepth(1);
+
+    this.time.addEvent({
+      delay: 1000,
+      loop: true,
+      callback: () => {
+        if (!this.gameOver) {
+          this.score++;
+          this.scoreText.setText('Score: ' + this.score);
+        }
+      }
+    });
+
     this.scheduleSpike();
   }
 
@@ -102,9 +121,15 @@ export class GameScene extends Phaser.Scene {
     const cx = this.scale.width / 2;
     const cy = this.scale.height / 2;
 
-    this.add.text(cx, cy - 30, 'GAME OVER', {
+    this.add.text(cx, cy - 60, 'GAME OVER', {
       fontSize: '48px',
       color: '#ff4444',
+      fontFamily: 'monospace'
+    }).setOrigin(0.5);
+
+    this.add.text(cx, cy - 10, 'Score: ' + this.score, {
+      fontSize: '28px',
+      color: '#ffffff',
       fontFamily: 'monospace'
     }).setOrigin(0.5);
 
