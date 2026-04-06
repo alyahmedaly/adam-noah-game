@@ -1,3 +1,5 @@
+import { getBest, saveBestIfBeaten } from './records.js';
+
 export function createTitle(scene) {
   scene.add.text(400, 18, 'SPIKE GAME', {
     fontSize: '20px', color: '#ffffff', fontFamily: 'monospace', fontStyle: 'bold'
@@ -10,12 +12,22 @@ export function createTitle(scene) {
 
 export function createScore(scene) {
   scene.score = 0;
-  scene.score1 = 0; // Adam's final score (set when he dies)
-  scene.score2 = 0; // Noah's final score (set when he dies)
+  scene.score1 = 0;
+  scene.score2 = 0;
 
-  scene.scoreText = scene.add.text(12, 12, 'Score: 0', {
+  // Live score (top center)
+  scene.scoreText = scene.add.text(400, 12, 'Score: 0', {
     fontSize: '18px', color: '#ffffff', fontFamily: 'monospace'
+  }).setOrigin(0.5, 0).setDepth(1);
+
+  // Best score labels (corners)
+  scene.add.text(12, 12, 'Adam best: ' + getBest('adam'), {
+    fontSize: '13px', color: '#00aaff', fontFamily: 'monospace'
   }).setDepth(1);
+
+  scene.add.text(788, 12, 'Noah best: ' + getBest('noah'), {
+    fontSize: '13px', color: '#00cc44', fontFamily: 'monospace'
+  }).setOrigin(1, 0).setDepth(1);
 
   scene.time.addEvent({
     delay: 1000,
@@ -30,12 +42,11 @@ export function createScore(scene) {
 }
 
 export function showPlayerDead(scene, playerName, nameColor, score, x) {
-  const groundY = scene.groundY;
-  scene.add.text(x, groundY - 90, `${playerName} died`, {
+  scene.add.text(x, scene.groundY - 90, `${playerName} died`, {
     fontSize: '14px', color: nameColor, fontFamily: 'monospace'
   }).setOrigin(0.5).setDepth(2);
 
-  scene.add.text(x, groundY - 72, `Score: ${score}`, {
+  scene.add.text(x, scene.groundY - 72, `Score: ${score}s`, {
     fontSize: '12px', color: '#ffffff', fontFamily: 'monospace'
   }).setOrigin(0.5).setDepth(2);
 }
@@ -46,32 +57,51 @@ export function showGameOver(scene) {
 
   const adamScore = scene.score1;
   const noahScore = scene.score2;
-  let winnerText;
-  if (adamScore > noahScore) {
-    winnerText = 'Adam wins!';
-  } else if (noahScore > adamScore) {
-    winnerText = 'Noah wins!';
-  } else {
-    winnerText = "It's a tie!";
-  }
+  const adamNewBest = saveBestIfBeaten('adam', adamScore);
+  const noahNewBest = saveBestIfBeaten('noah', noahScore);
 
-  scene.add.text(cx, cy - 80, 'GAME OVER', {
+  let winnerText;
+  if (adamScore > noahScore)       winnerText = 'Adam wins!';
+  else if (noahScore > adamScore)  winnerText = 'Noah wins!';
+  else                             winnerText = "It's a tie!";
+
+  scene.add.text(cx, cy - 90, 'GAME OVER', {
     fontSize: '48px', color: '#ff4444', fontFamily: 'monospace'
   }).setOrigin(0.5).setDepth(3);
 
-  scene.add.text(cx, cy - 25, winnerText, {
+  scene.add.text(cx, cy - 35, winnerText, {
     fontSize: '32px', color: '#ffff00', fontFamily: 'monospace'
   }).setOrigin(0.5).setDepth(3);
 
-  scene.add.text(cx - 120, cy + 20, `Adam: ${adamScore}s`, {
+  // Adam score + optional new record badge
+  scene.add.text(cx - 130, cy + 15, `Adam: ${adamScore}s`, {
     fontSize: '20px', color: '#00aaff', fontFamily: 'monospace'
   }).setOrigin(0.5).setDepth(3);
+  if (adamNewBest) {
+    scene.add.text(cx - 130, cy + 35, '★ New best!', {
+      fontSize: '13px', color: '#ffd700', fontFamily: 'monospace'
+    }).setOrigin(0.5).setDepth(3);
+  } else {
+    scene.add.text(cx - 130, cy + 35, `Best: ${getBest('adam')}s`, {
+      fontSize: '13px', color: '#aaaaaa', fontFamily: 'monospace'
+    }).setOrigin(0.5).setDepth(3);
+  }
 
-  scene.add.text(cx + 120, cy + 20, `Noah: ${noahScore}s`, {
+  // Noah score + optional new record badge
+  scene.add.text(cx + 130, cy + 15, `Noah: ${noahScore}s`, {
     fontSize: '20px', color: '#00cc44', fontFamily: 'monospace'
   }).setOrigin(0.5).setDepth(3);
+  if (noahNewBest) {
+    scene.add.text(cx + 130, cy + 35, '★ New best!', {
+      fontSize: '13px', color: '#ffd700', fontFamily: 'monospace'
+    }).setOrigin(0.5).setDepth(3);
+  } else {
+    scene.add.text(cx + 130, cy + 35, `Best: ${getBest('noah')}s`, {
+      fontSize: '13px', color: '#aaaaaa', fontFamily: 'monospace'
+    }).setOrigin(0.5).setDepth(3);
+  }
 
-  scene.add.text(cx, cy + 60, 'Press R to restart', {
+  scene.add.text(cx, cy + 70, 'Press R to restart', {
     fontSize: '20px', color: '#aaaaaa', fontFamily: 'monospace'
   }).setOrigin(0.5).setDepth(3);
 
