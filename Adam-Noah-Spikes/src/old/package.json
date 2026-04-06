@@ -1,0 +1,9 @@
+{
+  "name": "adam-spike-game",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test",
+    "sounds:convert": "node scripts/convert-sounds.mjs"
+  }
+}

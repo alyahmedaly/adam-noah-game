@@ -1,0 +1,69 @@
+import Phaser from 'phaser';
+
+declare global {
+    interface Window {
+        Phaser: typeof Phaser;
+    }
+}
+
+window.Phaser = Phaser;
+let gameInstance: Phaser.Game | null = null;
+
+const StartGame = async (parent: string): Promise<Phaser.Game> => {
+    if (gameInstance) {
+        return gameInstance;
+    }
+
+    const [{ GameScene }, { MenuScene }] = await Promise.all([
+        import('./game.ts'),
+        import('./menu.ts'),
+    ]);
+
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+
+    const config: Phaser.Types.Core.GameConfig = {
+        type: Phaser.AUTO,
+        width: viewportWidth,
+        height: viewportHeight,
+        parent,
+        backgroundColor: '#1a1a2e',
+        resolution: Math.min(window.devicePixelRatio || 1, 2),
+        autoRound: false,
+        input: {
+            gamepad: true,
+        },
+        render: {
+            antialias: true,
+            antialiasGL: true,
+            pixelArt: false,
+            roundPixels: false,
+        },
+        scale: {
+            mode: Phaser.Scale.NONE,
+            autoCenter: Phaser.Scale.NO_CENTER,
+            width: viewportWidth,
+            height: viewportHeight,
+        },
+        physics: {
+            default: 'arcade',
+            arcade: {
+                gravity: { x: 0, y: 600 },
+                debug: false,
+            },
+        },
+        scene: [MenuScene, GameScene],
+    };
+
+    gameInstance = new Phaser.Game(config);
+    window.addEventListener('resize', () => {
+        if (!gameInstance) {
+            return;
+        }
+
+        gameInstance.scale.resize(window.innerWidth, window.innerHeight);
+    });
+    return gameInstance;
+};
+
+export default StartGame;

@@ -1,0 +1,49 @@
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    min-height: 100vh;
+    color: #f5f7ff;
+    background:
+        radial-gradient(circle at top, rgba(76, 110, 245, 0.25), transparent 30%),
+        linear-gradient(180deg, #0f172a 0%, #111827 55%, #050816 100%);
+    font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+}
+
+html,
+#app {
+    width: 100%;
+    height: 100%;
+}
+
+#app {
+    min-height: 100vh;
+}
+
+.game-shell {
+    min-height: 100vh;
+}
+
+.game-shell__stage {
+    width: 100%;
+    min-height: 100vh;
+    padding: 0;
+}
+
+#game-container {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#game-container canvas {
+    width: 100%;
+    height: 100%;
+    display: block;
+    image-rendering: auto;
+    image-rendering: smooth;
+}
