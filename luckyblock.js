@@ -43,6 +43,16 @@ export function spawnLuckyBlock(scene) {
   scene.physics.add.overlap(scene.player2, block, () => hitBlock(scene, block, 2));
 }
 
+export function scheduleLuckyBlockRespawns(scene) {
+  // Always ensure a lucky block appears every 20-30s regardless of collection
+  scene.time.delayedCall(Phaser.Math.Between(20000, 30000), () => {
+    if (!scene.gameOver) {
+      spawnLuckyBlock(scene);
+      scheduleLuckyBlockRespawns(scene);
+    }
+  });
+}
+
 function hitBlock(scene, block, playerNum) {
   if (block.used) return;
   block.used = true;

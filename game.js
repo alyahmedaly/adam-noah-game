@@ -2,7 +2,8 @@ import { createBackground, createGround } from './background.js';
 import { createPlayers, updatePlayers } from './players.js';
 import { createSpikeTexture, scheduleSpike } from './spikes.js';
 import { createTitle, createScore, createLivesHUD, updateLivesHUD, showPlayerDead, showGameOver } from './ui.js';
-import { createLuckyBlockTexture, spawnLuckyBlock } from './luckyblock.js';
+import { createLuckyBlockTexture, spawnLuckyBlock, scheduleLuckyBlockRespawns } from './luckyblock.js';
+import { createHeartTexture, scheduleHeartSpawns } from './heartpickup.js';
 
 const MAX_LIVES = 3;
 const RESPAWN_INVINCIBILITY_MS = 2000;
@@ -44,11 +45,18 @@ export class GameScene extends Phaser.Scene {
 
     createLuckyBlockTexture(this);
     spawnLuckyBlock(this);
+    scheduleLuckyBlockRespawns(this);
+
+    createHeartTexture(this);
+    scheduleHeartSpawns(this);
 
     createTitle(this);
     createScore(this);
     createLivesHUD(this);
     scheduleSpike(this);
+
+    // Expose lives HUD updater for pickups
+    this.updateLivesHUD = () => updateLivesHUD(this, this.lives1, this.lives2);
   }
 
   update() {
