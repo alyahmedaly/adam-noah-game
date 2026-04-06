@@ -16,8 +16,8 @@ export function createScore(scene) {
   scene.score1 = 0;
   scene.score2 = 0;
 
-  // Live score (top center)
-  scene.scoreText = scene.add.text(400, 12, 'Score: 0', {
+  // Live score (top center, below title)
+  scene.scoreText = scene.add.text(400, 62, 'Score: 0', {
     fontSize: '18px', color: '#ffffff', fontFamily: 'monospace'
   }).setOrigin(0.5, 0).setDepth(1);
 
