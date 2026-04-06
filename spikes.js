@@ -13,9 +13,13 @@ export function createSpikeTexture(scene) {
 }
 
 export function scheduleSpike(scene) {
-  const delay = Phaser.Math.Between(1500, 2500);
+  // Interval shrinks as score grows: starts 1500-2500ms, floors at 400-800ms
+  const base = Math.max(400, 1500 - scene.score * 20);
+  const jitter = Math.max(200, 1000 - scene.score * 10);
+  const delay = Phaser.Math.Between(base, base + jitter);
+
   scene.time.delayedCall(delay, () => {
-    spawnSpike(scene);
+    if (!scene.gameOver) spawnSpike(scene);
     scheduleSpike(scene);
   });
 }
@@ -25,13 +29,18 @@ function spawnSpike(scene) {
     scene.spikes.getFirst()?.destroy();
   }
 
+  // Only exclude living players from the spawn zone
   const exclusion = 60;
   let x;
+  let attempts = 0;
   do {
     x = Phaser.Math.Between(40, 760);
+    attempts++;
   } while (
-    Math.abs(x - scene.player1.x) < exclusion ||
-    Math.abs(x - scene.player2.x) < exclusion
+    attempts < 20 && (
+      (!scene.player1Dead && Math.abs(x - scene.player1.x) < exclusion) ||
+      (!scene.player2Dead && Math.abs(x - scene.player2.x) < exclusion)
+    )
   );
 
   const spike = scene.spikes.create(x, scene.groundY - 22, 'spike');

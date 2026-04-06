@@ -1,7 +1,7 @@
 import { createBackground, createGround } from './background.js';
 import { createPlayers, updatePlayers } from './players.js';
 import { createSpikeTexture, scheduleSpike } from './spikes.js';
-import { createTitle, createScore, showGameOver } from './ui.js';
+import { createTitle, createScore, showPlayerDead, showGameOver } from './ui.js';
 
 export class GameScene extends Phaser.Scene {
   constructor() {
@@ -26,9 +26,15 @@ export class GameScene extends Phaser.Scene {
     createSpikeTexture(this);
     this.spikes = this.physics.add.staticGroup();
     this.gameOver = false;
+    this.player1Dead = false;
+    this.player2Dead = false;
 
-    this.spike1Overlap = this.physics.add.overlap(this.player1, this.spikes, () => this.triggerGameOver('Noah wins!'), null, this);
-    this.spike2Overlap = this.physics.add.overlap(this.player2, this.spikes, () => this.triggerGameOver('Adam wins!'), null, this);
+    this.spike1Overlap = this.physics.add.overlap(
+      this.player1, this.spikes, () => this.killPlayer(1), null, this
+    );
+    this.spike2Overlap = this.physics.add.overlap(
+      this.player2, this.spikes, () => this.killPlayer(2), null, this
+    );
 
     createTitle(this);
     createScore(this);
@@ -37,25 +43,40 @@ export class GameScene extends Phaser.Scene {
 
   update() {
     if (this.gameOver) return;
-    updatePlayers(this.player1, this.player2, this.wasd, this.cursors);
+    updatePlayers(
+      this.player1Dead ? null : this.player1,
+      this.player2Dead ? null : this.player2,
+      this.wasd,
+      this.cursors
+    );
   }
 
-  triggerGameOver(winnerText) {
-    if (this.gameOver) return;
-    this.gameOver = true;
+  killPlayer(num) {
+    if (num === 1 && !this.player1Dead) {
+      this.player1Dead = true;
+      this.score1 = this.score;
+      this.spike1Overlap.destroy();
+      freezePlayer(this.player1);
+      showPlayerDead(this, 'Adam', '#00aaff', this.score1, this.player1.x);
+    } else if (num === 2 && !this.player2Dead) {
+      this.player2Dead = true;
+      this.score2 = this.score;
+      this.spike2Overlap.destroy();
+      freezePlayer(this.player2);
+      showPlayerDead(this, 'Noah', '#00cc44', this.score2, this.player2.x);
+    }
 
-    this.spike1Overlap.destroy();
-    this.spike2Overlap.destroy();
-    this.time.removeAllEvents();
-
-    [this.player1, this.player2].forEach(p => {
-      if (p?.body) {
-        p.setTint(0xff0000);
-        p.setVelocity(0, 0);
-        p.body.setAllowGravity(false);
-      }
-    });
-
-    showGameOver(this, winnerText);
+    if (this.player1Dead && this.player2Dead) {
+      this.gameOver = true;
+      this.time.removeAllEvents();
+      showGameOver(this);
+    }
   }
+}
+
+function freezePlayer(player) {
+  if (!player?.body) return;
+  player.setTint(0xff0000);
+  player.setVelocity(0, 0);
+  player.body.setAllowGravity(false);
 }
