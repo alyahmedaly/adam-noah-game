@@ -1,4 +1,5 @@
 import { PLAYER_SOUND_EVENTS } from './audio.js';
+import { getHeartDelayMultiplier, isHeartSpawnBlocked } from './intensity.js';
 
 const HEART_SIZE = 24;
 
@@ -23,12 +24,16 @@ export function createHeartTexture(scene) {
 
 export function scheduleHeartSpawns(scene) {
   // Spawn a heart every 12-20 seconds, but only if at least one player has lost a life
+  const delayMultiplier = getHeartDelayMultiplier(scene);
   scene.time.addEvent({
-    delay: Phaser.Math.Between(12000, 20000),
+    delay: Phaser.Math.Between(
+      Math.round(12000 * delayMultiplier),
+      Math.round(20000 * delayMultiplier)
+    ),
     loop: false,
     callback: () => {
       if (!scene.gameOver) {
-        if (scene.lives1 < scene.maxLives || scene.lives2 < scene.maxLives) {
+        if (!isHeartSpawnBlocked(scene) && (scene.lives1 < scene.maxLives || scene.lives2 < scene.maxLives)) {
           spawnHeart(scene);
         }
         scheduleHeartSpawns(scene); // re-schedule
@@ -51,6 +56,15 @@ function spawnHeart(scene) {
     targets: heart,
     y: y - 6,
     duration: 700,
+    yoyo: true,
+    repeat: -1,
+    ease: 'Sine.easeInOut'
+  });
+  scene.tweens.add({
+    targets: heart,
+    scaleX: 1.08,
+    scaleY: 1.08,
+    duration: 550,
     yoyo: true,
     repeat: -1,
     ease: 'Sine.easeInOut'
@@ -79,6 +93,7 @@ function collectHeart(scene, heart, playerNum) {
   // Update HUD
   scene.updateLivesHUD();
   scene.audio.playForPlayer(playerNum, PLAYER_SOUND_EVENTS.HEART_ADDED);
+  scene.cameras.main.shake(120, scene.intensity?.settings?.damageShake ?? 0.0025);
 
   // Floating text
   const player = playerNum === 1 ? scene.player1 : scene.player2;

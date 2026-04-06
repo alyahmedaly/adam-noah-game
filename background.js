@@ -7,6 +7,47 @@ export function createBackground(scene) {
   } else {
     _drawNight(scene);
   }
+
+  const overlay = scene.add.rectangle(0, 0, 800, 400, 0x203650, 0).setOrigin(0).setDepth(-29);
+  const ribbons = scene.add.graphics().setDepth(-28);
+  const particles = Array.from({ length: 18 }, (_, index) => {
+    const particle = scene.add.circle(0, 0, 3, 0xffffff, 0).setDepth(-27);
+    particle.phaseSeed = (index + 1) * 37;
+    return particle;
+  });
+
+  scene.backgroundFx = { overlay, ribbons, particles };
+}
+
+export function updateBackground(scene) {
+  const settings = scene.intensity?.settings;
+  const fx = scene.backgroundFx;
+  if (!settings || !fx) return;
+
+  const now = scene.time.now;
+  fx.overlay.setFillStyle(
+    settings.overlayColor,
+    settings.overlayAlpha + Math.sin(now / 1200) * 0.02
+  );
+
+  fx.ribbons.clear();
+  for (let index = 0; index < 3; index++) {
+    const y = 70 + index * 90 + Math.sin(now / 850 + index * 0.8) * settings.ribbonDrift;
+    const x = 400 + Math.cos(now / 1200 + index) * 60;
+    fx.ribbons.fillStyle(settings.overlayColor, settings.ribbonAlpha * (0.6 + index * 0.15));
+    fx.ribbons.fillEllipse(x, y, 520 + index * 70, 46 + index * 18);
+  }
+
+  for (const particle of fx.particles) {
+    const x = ((now * 0.018) + particle.phaseSeed * 17) % 860 - 30;
+    const y = 360 - (((now * 0.032) + particle.phaseSeed * 29) % 330);
+    const wave = 0.65 + 0.35 * Math.sin(now / 500 + particle.phaseSeed);
+    const radius = 1.5 + settings.particleScale * 6 * wave;
+    particle.x = x;
+    particle.y = y;
+    particle.setRadius(radius);
+    particle.setFillStyle(settings.particleColor, settings.particleAlpha * wave);
+  }
 }
 
 export function createGround(scene, groundY, groundHeight) {
@@ -50,7 +91,7 @@ export function createGround(scene, groundY, groundHeight) {
 // ── Background themes ────────────────────────────────────────────────────────
 
 function _drawDaytime(scene) {
-  const gfx = scene.add.graphics();
+  const gfx = scene.add.graphics().setDepth(-30);
 
   // Sky gradient: light blue top to pale bottom
   gfx.fillStyle(0x87ceeb, 1);
@@ -81,7 +122,7 @@ function _drawCloud(gfx, x, y) {
 
 function _drawNight(scene) {
   // Same starfield as before
-  const gfx = scene.add.graphics();
+  const gfx = scene.add.graphics().setDepth(-30);
   for (let i = 0; i < 80; i++) {
     gfx.fillStyle(0xffffff, Phaser.Math.FloatBetween(0.3, 1));
     gfx.fillCircle(
@@ -93,7 +134,7 @@ function _drawNight(scene) {
 }
 
 function _drawLava(scene) {
-  const gfx = scene.add.graphics();
+  const gfx = scene.add.graphics().setDepth(-30);
 
   // Dark red sky
   gfx.fillStyle(0x1a0000, 1);

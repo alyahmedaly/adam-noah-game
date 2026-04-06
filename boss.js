@@ -1,3 +1,5 @@
+import { getBossRageMultiplier } from './intensity.js';
+
 const BOSS_MAX_HP = 10;
 const BOSS_FIRE_INTERVAL = 5000; // ms between boss shots
 const BOSS_SPEED_X = 80;
@@ -101,15 +103,24 @@ export function spawnBoss(scene) {
 export function updateBoss(scene) {
   const boss = scene.boss;
   if (!boss?.active) return;
+  const settings = scene.intensity?.settings;
+  const rageMultiplier = getBossRageMultiplier(scene);
 
   // Bounce vertically between y=40 and y=160
   if (boss.y < 40)  boss.setVelocityY(BOSS_SPEED_Y);
   if (boss.y > 160) boss.setVelocityY(-BOSS_SPEED_Y);
 
+  const wave = Math.sin(scene.time.now / 220);
+  boss.setScale(1 + (settings?.spikePulse ?? 0.03) * 0.35 + wave * 0.03 * rageMultiplier);
+  boss.setAngle(Math.sin(scene.time.now / 300) * 4 * rageMultiplier);
+
   _updateBossHpBar(scene);
 
   // Clean up projectiles that left the screen
   scene.bossProjectiles.getChildren().forEach(p => {
+    const pulse = 1 + Math.sin(scene.time.now / 160 + p.x * 0.01) * 0.12 * rageMultiplier;
+    p.setScale(pulse);
+    p.setAlpha(0.75 + 0.15 * rageMultiplier);
     if (p.y > scene.groundY + 20) p.destroy();
   });
 }
@@ -121,6 +132,7 @@ export function hitBoss(scene) {
   boss.hp--;
   boss.setTint(0xffffff);
   scene.time.delayedCall(120, () => { if (boss.active) boss.clearTint(); });
+  scene.cameras.main.shake(120, scene.intensity?.settings?.damageShake ?? 0.0035);
 
   _updateBossHpBar(scene);
 
@@ -131,6 +143,7 @@ export function hitBoss(scene) {
 
 function _bossShoot(scene) {
   if (!scene.boss?.active || scene.gameOver) return;
+  const rageMultiplier = getBossRageMultiplier(scene);
 
   // Pick a random living player to target
   const targets = [];
@@ -141,9 +154,10 @@ function _bossShoot(scene) {
   const target = targets[Phaser.Math.Between(0, targets.length - 1)];
   const proj = scene.bossProjectiles.create(scene.boss.x, scene.boss.y + 30, 'bossProjectile');
   proj.setGravityY(-600); // cancel world gravity
+  proj.setTint(rageMultiplier > 1 ? 0xffaa33 : 0xffffff);
   proj.setVelocity(
-    (target.x - scene.boss.x) * 1.5,
-    200
+    (target.x - scene.boss.x) * 1.5 * rageMultiplier,
+    200 * rageMultiplier
   );
   proj.setDepth(4);
 }

@@ -1,4 +1,5 @@
 import { PLAYER_SOUND_EVENTS } from './audio.js';
+import { getLuckyDelayMultiplier } from './intensity.js';
 import { givePistol } from './pistol.js';
 
 const BLOCK_SIZE = 32;
@@ -40,6 +41,15 @@ export function spawnLuckyBlock(scene) {
   block.setSize(BLOCK_SIZE, BLOCK_SIZE);
   block.refreshBody();
   block.used = false;
+  scene.tweens.add({
+    targets: block,
+    scaleX: 1.08,
+    scaleY: 1.08,
+    duration: 650,
+    yoyo: true,
+    repeat: -1,
+    ease: 'Sine.easeInOut'
+  });
 
   // Any contact from any side triggers it
   scene.physics.add.overlap(scene.player1, block, () => hitBlock(scene, block, 1));
@@ -48,7 +58,11 @@ export function spawnLuckyBlock(scene) {
 
 export function scheduleLuckyBlockRespawns(scene) {
   // Always ensure a lucky block appears every 20-30s regardless of collection
-  scene.time.delayedCall(Phaser.Math.Between(20000, 30000), () => {
+  const delayMultiplier = getLuckyDelayMultiplier(scene);
+  scene.time.delayedCall(Phaser.Math.Between(
+    Math.round(20000 * delayMultiplier),
+    Math.round(30000 * delayMultiplier)
+  ), () => {
     if (!scene.gameOver) {
       spawnLuckyBlock(scene);
       scheduleLuckyBlockRespawns(scene);
@@ -80,7 +94,11 @@ function activateSuperpower(scene, playerNum) {
       targets: txt, y: txt.y - 30, alpha: 0, duration: 1200,
       onComplete: () => txt.destroy()
     });
-    scene.time.delayedCall(Phaser.Math.Between(8000, 15000), () => {
+    const delayMultiplier = getLuckyDelayMultiplier(scene);
+    scene.time.delayedCall(Phaser.Math.Between(
+      Math.round(8000 * delayMultiplier),
+      Math.round(15000 * delayMultiplier)
+    ), () => {
       if (!scene.gameOver) spawnLuckyBlock(scene);
     });
     return;
@@ -117,7 +135,11 @@ function activateSuperpower(scene, playerNum) {
   });
 
   // Respawn block after a delay
-  scene.time.delayedCall(Phaser.Math.Between(8000, 15000), () => {
+  const delayMultiplier = getLuckyDelayMultiplier(scene);
+  scene.time.delayedCall(Phaser.Math.Between(
+    Math.round(8000 * delayMultiplier),
+    Math.round(15000 * delayMultiplier)
+  ), () => {
     if (!scene.gameOver) spawnLuckyBlock(scene);
   });
 }

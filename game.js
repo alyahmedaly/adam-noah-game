@@ -1,10 +1,11 @@
-import { createBackground, createGround } from './background.js';
+import { createBackground, createGround, updateBackground } from './background.js';
 import { createPlayers, updatePlayers } from './players.js';
-import { createSpikeTexture, scheduleSpike } from './spikes.js';
+import { createSpikeTexture, scheduleSpike, updateSpikes } from './spikes.js';
 import { createTitle, createScore, createLivesHUD, updateLivesHUD, showPlayerDead, showGameOver } from './ui.js';
 import { createLuckyBlockTexture, spawnLuckyBlock, scheduleLuckyBlockRespawns } from './luckyblock.js';
 import { createHeartTexture, scheduleHeartSpawns } from './heartpickup.js';
 import { PLAYER_SOUND_EVENTS, attachSceneAudio, preloadSceneAudio } from './audio.js';
+import { createIntensityController, updateIntensityController } from './intensity.js';
 import { spawnBoss, updateBoss } from './boss.js';
 import { updatePistol } from './pistol.js';
 
@@ -37,6 +38,7 @@ export class GameScene extends Phaser.Scene {
 
     this.groundY = 360;
     const groundHeight = 40;
+    createIntensityController(this);
 
     createBackground(this);
     this.ground = createGround(this, this.groundY, groundHeight);
@@ -85,12 +87,16 @@ export class GameScene extends Phaser.Scene {
 
   update() {
     if (this.gameOver) return;
+    updateIntensityController(this);
+    updateBackground(this);
     updatePlayers(
+      this,
       this.player1Dead ? null : this.player1,
       this.player2Dead ? null : this.player2,
       this.wasd,
       this.cursors
     );
+    updateSpikes(this);
 
     // Spawn boss in Ninja mode when score hits 50
     if (this.difficulty === 'ninja' && !this.bossSpawned && this.score >= 50) {
@@ -112,12 +118,14 @@ export class GameScene extends Phaser.Scene {
       updateLivesHUD(this, this.lives1, this.lives2);
       if (this.lives1 <= 0) return this.eliminatePlayer(1);
       this.audio.playForPlayer(1, PLAYER_SOUND_EVENTS.HURT);
+      this.cameras.main.shake(120, this.intensity?.settings?.damageShake ?? 0.003);
       respawnInvincible(this, this.player1, this.spike1Overlap, this.color1);
     } else {
       this.lives2--;
       updateLivesHUD(this, this.lives1, this.lives2);
       if (this.lives2 <= 0) return this.eliminatePlayer(2);
       this.audio.playForPlayer(2, PLAYER_SOUND_EVENTS.HURT);
+      this.cameras.main.shake(120, this.intensity?.settings?.damageShake ?? 0.003);
       respawnInvincible(this, this.player2, this.spike2Overlap, this.color2);
     }
   }

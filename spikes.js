@@ -1,3 +1,5 @@
+import { getSpikeDelayMultiplier } from './intensity.js';
+
 const SPIKE_CONFIG = {
   noob:   { base: 2000, baseDecrement: 10, jitter: 1200, jitterDecrement: 5,  minBase: 600, minJitter: 300 },
   normal: { base: 1500, baseDecrement: 20, jitter: 1000, jitterDecrement: 10, minBase: 400, minJitter: 200 },
@@ -46,13 +48,35 @@ export function createSpikeTexture(scene) {
 
 export function scheduleSpike(scene) {
   const cfg = SPIKE_CONFIG[scene.difficulty] ?? SPIKE_CONFIG.normal;
-  const base   = Math.max(cfg.minBase,   cfg.base   - scene.score * cfg.baseDecrement);
-  const jitter = Math.max(cfg.minJitter, cfg.jitter  - scene.score * cfg.jitterDecrement);
+  const multiplier = getSpikeDelayMultiplier(scene);
+  const base = Math.max(
+    cfg.minBase,
+    Math.round((cfg.base - scene.score * cfg.baseDecrement) * multiplier)
+  );
+  const jitter = Math.max(
+    cfg.minJitter,
+    Math.round((cfg.jitter - scene.score * cfg.jitterDecrement) * multiplier)
+  );
   const delay  = Phaser.Math.Between(base, base + jitter);
 
   scene.time.delayedCall(delay, () => {
     if (!scene.gameOver) spawnSpike(scene);
     scheduleSpike(scene);
+  });
+}
+
+export function updateSpikes(scene) {
+  const settings = scene.intensity?.settings;
+  if (!settings || !scene.spikes) return;
+
+  const now = scene.time.now;
+  scene.spikes.getChildren().forEach((spike, index) => {
+    if (!spike?.active) return;
+
+    const wave = Math.sin(now / 190 + index * 0.65);
+    spike.setScale(1, 1 + wave * settings.spikePulse);
+    spike.setAlpha(Phaser.Math.Clamp(0.82 + settings.spikeGlow + wave * 0.08, 0.65, 1));
+    spike.setAngle(wave * 2.5);
   });
 }
 

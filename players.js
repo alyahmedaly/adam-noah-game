@@ -136,17 +136,20 @@ export function createPlayers(scene, groundY, ground) {
   return { player1, player2, wasd, cursors };
 }
 
-export function updatePlayers(player1, player2, wasd, cursors) {
-  movePlayer(player1, wasd.left.isDown, wasd.right.isDown,
+export function updatePlayers(scene, player1, player2, wasd, cursors) {
+  movePlayer(scene, player1, wasd.left.isDown, wasd.right.isDown,
     Phaser.Input.Keyboard.JustDown(wasd.up));
 
-  movePlayer(player2, cursors.left.isDown, cursors.right.isDown,
+  movePlayer(scene, player2, cursors.left.isDown, cursors.right.isDown,
     Phaser.Input.Keyboard.JustDown(cursors.up));
 }
 
-function movePlayer(player, goLeft, goRight, jump) {
+function movePlayer(scene, player, goLeft, goRight, jump) {
   if (!player?.body) return;
   const onGround = player.body.blocked.down;
+  const settings = scene.intensity?.settings;
+  const wasOnGround = player.wasOnGround ?? true;
+
   if (goLeft) {
     player.setVelocityX(-220);
   } else if (goRight) {
@@ -156,5 +159,27 @@ function movePlayer(player, goLeft, goRight, jump) {
   }
   if (jump && onGround) {
     player.setVelocityY(-520);
+    player.juiceX = 1.12;
+    player.juiceY = 0.86;
   }
+
+  if (!wasOnGround && onGround) {
+    player.juiceX = 0.84;
+    player.juiceY = 1.16;
+  }
+
+  player.juiceX = Phaser.Math.Linear(player.juiceX ?? 1, 1, 0.18);
+  player.juiceY = Phaser.Math.Linear(player.juiceY ?? 1, 1, 0.18);
+
+  const airStretch = onGround
+    ? 1
+    : 1 + Math.min(settings?.airStretch ?? 0.04, Math.abs(player.body.velocity.y) * 0.00025);
+  const targetScaleX = onGround ? player.juiceX : Math.min(player.juiceX, 2 - airStretch);
+  const targetScaleY = onGround ? player.juiceY : Math.max(player.juiceY, airStretch);
+  player.scaleX = Phaser.Math.Linear(player.scaleX ?? 1, targetScaleX, 0.22);
+  player.scaleY = Phaser.Math.Linear(player.scaleY ?? 1, targetScaleY, 0.22);
+
+  const tilt = goLeft ? -(settings?.playerTilt ?? 2) : goRight ? (settings?.playerTilt ?? 2) : 0;
+  player.angle = Phaser.Math.Linear(player.angle ?? 0, tilt, 0.25);
+  player.wasOnGround = onGround;
 }
