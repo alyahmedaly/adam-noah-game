@@ -34,13 +34,14 @@
         groundBody.refreshBody();
 
         // Player
+        const PLAYER_H = 48;
         const playerGfx = this.make.graphics({ x: 0, y: 0, add: false });
         playerGfx.fillStyle(0x00d4ff, 1);
-        playerGfx.fillRect(0, 0, 32, 48);
-        playerGfx.generateTexture('player', 32, 48);
+        playerGfx.fillRect(0, 0, 32, PLAYER_H);
+        playerGfx.generateTexture('player', 32, PLAYER_H);
         playerGfx.destroy();
 
-        this.player = this.physics.add.sprite(100, groundY - 24, 'player');
+        this.player = this.physics.add.sprite(100, groundY - PLAYER_H / 2, 'player');
         this.player.setBounce(0);
         this.player.setCollideWorldBounds(true);
         this.physics.add.collider(this.player, this.ground);
@@ -55,6 +56,7 @@
       }
 
       update() {
+        if (!this.player || !this.player.body) return;
         const onGround = this.player.body.blocked.down;
         const goLeft = this.cursors.left.isDown || this.wasd.left.isDown;
         const goRight = this.cursors.right.isDown || this.wasd.right.isDown;
