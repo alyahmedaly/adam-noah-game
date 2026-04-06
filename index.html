@@ -20,6 +20,17 @@
       preload() {}
 
       create() {
+        // Starfield background
+        for (let i = 0; i < 80; i++) {
+          const x = Phaser.Math.Between(0, 800);
+          const y = Phaser.Math.Between(0, 360);
+          const r = Phaser.Math.FloatBetween(1, 2.5);
+          const alpha = Phaser.Math.FloatBetween(0.3, 1);
+          const star = this.add.graphics();
+          star.fillStyle(0xffffff, alpha);
+          star.fillCircle(x, y, r);
+        }
+
         // Ground
         this.groundY = 360;
         const groundY = this.groundY;
