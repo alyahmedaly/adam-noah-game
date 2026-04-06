@@ -41,6 +41,24 @@ export function createScore(scene) {
   });
 }
 
+export function createLivesHUD(scene) {
+  // Adam lives (bottom-left)
+  scene.livesTexts = {
+    adam: scene.add.text(12, scene.groundY + 8, '❤️❤️❤️ Adam', {
+      fontSize: '14px', color: '#00aaff', fontFamily: 'monospace'
+    }).setDepth(2),
+    noah: scene.add.text(788, scene.groundY + 8, 'Noah ❤️❤️❤️', {
+      fontSize: '14px', color: '#00cc44', fontFamily: 'monospace'
+    }).setOrigin(1, 0).setDepth(2)
+  };
+}
+
+export function updateLivesHUD(scene, adamLives, noahLives) {
+  const hearts = n => '❤️'.repeat(Math.max(0, n)) + '🖤'.repeat(Math.max(0, 3 - n));
+  scene.livesTexts.adam.setText(hearts(adamLives) + ' Adam');
+  scene.livesTexts.noah.setText('Noah ' + hearts(noahLives));
+}
+
 export function showPlayerDead(scene, playerName, nameColor, score, x) {
   scene.add.text(x, scene.groundY - 90, `${playerName} died`, {
     fontSize: '14px', color: nameColor, fontFamily: 'monospace'

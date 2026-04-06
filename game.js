@@ -1,8 +1,11 @@
 import { createBackground, createGround } from './background.js';
 import { createPlayers, updatePlayers } from './players.js';
 import { createSpikeTexture, scheduleSpike } from './spikes.js';
-import { createTitle, createScore, showPlayerDead, showGameOver } from './ui.js';
+import { createTitle, createScore, createLivesHUD, updateLivesHUD, showPlayerDead, showGameOver } from './ui.js';
 import { createLuckyBlockTexture, spawnLuckyBlock } from './luckyblock.js';
+
+const MAX_LIVES = 3;
+const RESPAWN_INVINCIBILITY_MS = 2000;
 
 export class GameScene extends Phaser.Scene {
   constructor() {
@@ -29,12 +32,14 @@ export class GameScene extends Phaser.Scene {
     this.gameOver = false;
     this.player1Dead = false;
     this.player2Dead = false;
+    this.lives1 = MAX_LIVES;
+    this.lives2 = MAX_LIVES;
 
     this.spike1Overlap = this.physics.add.overlap(
-      this.player1, this.spikes, () => this.killPlayer(1), null, this
+      this.player1, this.spikes, () => this.loseLife(1), null, this
     );
     this.spike2Overlap = this.physics.add.overlap(
-      this.player2, this.spikes, () => this.killPlayer(2), null, this
+      this.player2, this.spikes, () => this.loseLife(2), null, this
     );
 
     createLuckyBlockTexture(this);
@@ -42,6 +47,7 @@ export class GameScene extends Phaser.Scene {
 
     createTitle(this);
     createScore(this);
+    createLivesHUD(this);
     scheduleSpike(this);
   }
 
@@ -55,14 +61,32 @@ export class GameScene extends Phaser.Scene {
     );
   }
 
-  killPlayer(num) {
-    if (num === 1 && !this.player1Dead) {
+  loseLife(num) {
+    const isDead = num === 1 ? this.player1Dead : this.player2Dead;
+    if (isDead) return;
+
+    // Deduct a life
+    if (num === 1) {
+      this.lives1--;
+      updateLivesHUD(this, this.lives1, this.lives2);
+      if (this.lives1 <= 0) return this.eliminatePlayer(1);
+      respawnInvincible(this, this.player1, this.spike1Overlap, 0x00aaff);
+    } else {
+      this.lives2--;
+      updateLivesHUD(this, this.lives1, this.lives2);
+      if (this.lives2 <= 0) return this.eliminatePlayer(2);
+      respawnInvincible(this, this.player2, this.spike2Overlap, 0x00cc44);
+    }
+  }
+
+  eliminatePlayer(num) {
+    if (num === 1) {
       this.player1Dead = true;
       this.score1 = this.score;
       this.spike1Overlap.destroy();
       freezePlayer(this.player1);
       showPlayerDead(this, 'Adam', '#00aaff', this.score1, this.player1.x);
-    } else if (num === 2 && !this.player2Dead) {
+    } else {
       this.player2Dead = true;
       this.score2 = this.score;
       this.spike2Overlap.destroy();
@@ -76,6 +100,23 @@ export class GameScene extends Phaser.Scene {
       showGameOver(this);
     }
   }
+}
+
+function respawnInvincible(scene, player, overlap, color) {
+  // Flash red briefly, then gold during invincibility
+  player.setTint(0xff0000);
+  if (overlap) overlap.active = false;
+
+  scene.time.delayedCall(300, () => {
+    player.setTint(0xffd700);
+  });
+
+  scene.time.delayedCall(RESPAWN_INVINCIBILITY_MS, () => {
+    if (!scene.gameOver) {
+      player.setTint(color);
+      if (overlap) overlap.active = true;
+    }
+  });
 }
 
 function freezePlayer(player) {
