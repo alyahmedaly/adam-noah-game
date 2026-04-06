@@ -31,45 +31,65 @@ export class GameScene extends Phaser.Scene {
     groundBody.setSize(800, groundHeight);
     groundBody.refreshBody();
 
-    // Player — human-like figure (24x48 canvas)
     const PLAYER_H = 48;
-    const playerGfx = this.make.graphics({ x: 0, y: 0, add: false });
 
-    // Head
-    playerGfx.fillStyle(0xffd700, 1);
-    playerGfx.fillCircle(12, 7, 7);
+    // Player 1 texture — blue outfit
+    const p1Gfx = this.make.graphics({ x: 0, y: 0, add: false });
+    p1Gfx.fillStyle(0xffd700, 1);
+    p1Gfx.fillCircle(12, 7, 7);
+    p1Gfx.fillStyle(0x00aaff, 1);
+    p1Gfx.fillRect(7, 14, 10, 16);
+    p1Gfx.fillRect(1, 14, 6, 4);
+    p1Gfx.fillRect(17, 14, 6, 4);
+    p1Gfx.fillStyle(0x333333, 1);
+    p1Gfx.fillRect(7, 30, 4, 18);
+    p1Gfx.fillRect(13, 30, 4, 18);
+    p1Gfx.generateTexture('player1', 24, PLAYER_H);
+    p1Gfx.destroy();
 
-    // Body
-    playerGfx.fillStyle(0x00aaff, 1);
-    playerGfx.fillRect(7, 14, 10, 16);
+    // Player 2 texture — green outfit
+    const p2Gfx = this.make.graphics({ x: 0, y: 0, add: false });
+    p2Gfx.fillStyle(0xffd700, 1);
+    p2Gfx.fillCircle(12, 7, 7);
+    p2Gfx.fillStyle(0x00cc44, 1);
+    p2Gfx.fillRect(7, 14, 10, 16);
+    p2Gfx.fillRect(1, 14, 6, 4);
+    p2Gfx.fillRect(17, 14, 6, 4);
+    p2Gfx.fillStyle(0x333333, 1);
+    p2Gfx.fillRect(7, 30, 4, 18);
+    p2Gfx.fillRect(13, 30, 4, 18);
+    p2Gfx.generateTexture('player2', 24, PLAYER_H);
+    p2Gfx.destroy();
 
-    // Arms
-    playerGfx.fillStyle(0x00aaff, 1);
-    playerGfx.fillRect(1, 14, 6, 4);   // left arm
-    playerGfx.fillRect(17, 14, 6, 4);  // right arm
+    // Player 1 — WASD + W to jump (starts left)
+    this.player1 = this.physics.add.sprite(100, groundY - PLAYER_H / 2, 'player1');
+    this.player1.setBounce(0);
+    this.player1.setCollideWorldBounds(true);
+    this.physics.add.collider(this.player1, this.ground);
 
-    // Legs
-    playerGfx.fillStyle(0x333333, 1);
-    playerGfx.fillRect(7, 30, 4, 18);  // left leg
-    playerGfx.fillRect(13, 30, 4, 18); // right leg
-
-    playerGfx.generateTexture('player', 24, PLAYER_H);
-    playerGfx.destroy();
-
-    this.player = this.physics.add.sprite(100, groundY - PLAYER_H / 2, 'player');
-    this.player.setBounce(0);
-    this.player.setCollideWorldBounds(true);
-    this.physics.add.collider(this.player, this.ground);
+    // Player 2 — Arrow keys + Up to jump (starts right)
+    this.player2 = this.physics.add.sprite(700, groundY - PLAYER_H / 2, 'player2');
+    this.player2.setBounce(0);
+    this.player2.setCollideWorldBounds(true);
+    this.physics.add.collider(this.player2, this.ground);
 
     // Input
-    this.cursors = this.input.keyboard.createCursorKeys();
     this.wasd = this.input.keyboard.addKeys({
-      left: Phaser.Input.Keyboard.KeyCodes.A,
+      left:  Phaser.Input.Keyboard.KeyCodes.A,
       right: Phaser.Input.Keyboard.KeyCodes.D,
-      up: Phaser.Input.Keyboard.KeyCodes.W
+      up:    Phaser.Input.Keyboard.KeyCodes.W
     });
+    this.cursors = this.input.keyboard.createCursorKeys();
 
-    // Spike texture (triangle)
+    // Player labels
+    this.add.text(100, groundY - PLAYER_H - 18, 'P1', {
+      fontSize: '12px', color: '#00aaff', fontFamily: 'monospace'
+    }).setOrigin(0.5);
+    this.add.text(700, groundY - PLAYER_H - 18, 'P2', {
+      fontSize: '12px', color: '#00cc44', fontFamily: 'monospace'
+    }).setOrigin(0.5);
+
+    // Spike texture
     const spikeGfx = this.make.graphics({ x: 0, y: 0, add: false });
     spikeGfx.fillStyle(0xff4444, 1);
     spikeGfx.fillTriangle(0, 32, 16, 0, 32, 32);
@@ -78,28 +98,23 @@ export class GameScene extends Phaser.Scene {
 
     this.spikes = this.physics.add.staticGroup();
     this.gameOver = false;
-    this.spikeOverlap = this.physics.add.overlap(this.player, this.spikes, this.triggerGameOver, null, this);
+
+    this.spike1Overlap = this.physics.add.overlap(this.player1, this.spikes, () => this.triggerGameOver('P2 wins!'), null, this);
+    this.spike2Overlap = this.physics.add.overlap(this.player2, this.spikes, () => this.triggerGameOver('P1 wins!'), null, this);
 
     // Game title
     this.add.text(400, 18, 'SPIKE GAME', {
-      fontSize: '20px',
-      color: '#ffffff',
-      fontFamily: 'monospace',
-      fontStyle: 'bold'
+      fontSize: '20px', color: '#ffffff', fontFamily: 'monospace', fontStyle: 'bold'
     }).setOrigin(0.5, 0).setAlpha(0.7);
 
     this.add.text(400, 42, 'by Adam & Noah', {
-      fontSize: '13px',
-      color: '#aaaaaa',
-      fontFamily: 'monospace'
+      fontSize: '13px', color: '#aaaaaa', fontFamily: 'monospace'
     }).setOrigin(0.5, 0).setAlpha(0.6);
 
-    // Score (time survived)
+    // Score
     this.score = 0;
     this.scoreText = this.add.text(12, 12, 'Score: 0', {
-      fontSize: '18px',
-      color: '#ffffff',
-      fontFamily: 'monospace'
+      fontSize: '18px', color: '#ffffff', fontFamily: 'monospace'
     }).setDepth(1);
 
     this.time.addEvent({
@@ -118,56 +133,72 @@ export class GameScene extends Phaser.Scene {
 
   update() {
     if (this.gameOver) return;
-    if (!this.player || !this.player.body) return;
-    const onGround = this.player.body.blocked.down;
-    const goLeft = this.cursors.left.isDown || this.wasd.left.isDown;
-    const goRight = this.cursors.right.isDown || this.wasd.right.isDown;
-    const jump = Phaser.Input.Keyboard.JustDown(this.cursors.up) ||
-                 Phaser.Input.Keyboard.JustDown(this.cursors.space) ||
-                 Phaser.Input.Keyboard.JustDown(this.wasd.up);
 
-    if (goLeft) {
-      this.player.setVelocityX(-220);
-    } else if (goRight) {
-      this.player.setVelocityX(220);
-    } else {
-      this.player.setVelocityX(0);
+    // Player 1 — WASD
+    if (this.player1?.body) {
+      const onGround = this.player1.body.blocked.down;
+      if (this.wasd.left.isDown) {
+        this.player1.setVelocityX(-220);
+      } else if (this.wasd.right.isDown) {
+        this.player1.setVelocityX(220);
+      } else {
+        this.player1.setVelocityX(0);
+      }
+      if (Phaser.Input.Keyboard.JustDown(this.wasd.up) && onGround) {
+        this.player1.setVelocityY(-520);
+      }
     }
 
-    if (jump && onGround) {
-      this.player.setVelocityY(-520);
+    // Player 2 — Arrow keys
+    if (this.player2?.body) {
+      const onGround = this.player2.body.blocked.down;
+      if (this.cursors.left.isDown) {
+        this.player2.setVelocityX(-220);
+      } else if (this.cursors.right.isDown) {
+        this.player2.setVelocityX(220);
+      } else {
+        this.player2.setVelocityX(0);
+      }
+      if (Phaser.Input.Keyboard.JustDown(this.cursors.up) && onGround) {
+        this.player2.setVelocityY(-520);
+      }
     }
   }
 
-  triggerGameOver() {
+  triggerGameOver(winnerText) {
     if (this.gameOver) return;
     this.gameOver = true;
 
-    this.spikeOverlap.destroy();
-    this.player.setTint(0xff0000);
-    this.player.setVelocity(0, 0);
-    this.player.body.setAllowGravity(false);
+    this.spike1Overlap.destroy();
+    this.spike2Overlap.destroy();
     this.time.removeAllEvents();
+
+    // Freeze both players
+    [this.player1, this.player2].forEach(p => {
+      if (p?.body) {
+        p.setTint(0xff0000);
+        p.setVelocity(0, 0);
+        p.body.setAllowGravity(false);
+      }
+    });
 
     const cx = this.scale.width / 2;
     const cy = this.scale.height / 2;
 
-    this.add.text(cx, cy - 60, 'GAME OVER', {
-      fontSize: '48px',
-      color: '#ff4444',
-      fontFamily: 'monospace'
+    this.add.text(cx, cy - 70, 'GAME OVER', {
+      fontSize: '48px', color: '#ff4444', fontFamily: 'monospace'
     }).setOrigin(0.5);
 
-    this.add.text(cx, cy - 10, 'Score: ' + this.score, {
-      fontSize: '28px',
-      color: '#ffffff',
-      fontFamily: 'monospace'
+    this.add.text(cx, cy - 15, winnerText, {
+      fontSize: '32px', color: '#ffff00', fontFamily: 'monospace'
     }).setOrigin(0.5);
 
-    this.add.text(cx, cy + 30, 'Press R to restart', {
-      fontSize: '20px',
-      color: '#aaaaaa',
-      fontFamily: 'monospace'
+    this.add.text(cx, cy + 25, 'Score: ' + this.score, {
+      fontSize: '24px', color: '#ffffff', fontFamily: 'monospace'
+    }).setOrigin(0.5);
+
+    this.add.text(cx, cy + 60, 'Press R to restart', {
+      fontSize: '20px', color: '#aaaaaa', fontFamily: 'monospace'
     }).setOrigin(0.5);
 
     this.input.keyboard.once('keydown-R', () => {
@@ -187,11 +218,15 @@ export class GameScene extends Phaser.Scene {
     if (this.spikes.getLength() >= 12) {
       this.spikes.getFirst()?.destroy();
     }
+    // Avoid spawning on either player
     const exclusion = 60;
     let x;
     do {
       x = Phaser.Math.Between(40, 760);
-    } while (Math.abs(x - this.player.x) < exclusion);
+    } while (
+      Math.abs(x - this.player1.x) < exclusion ||
+      Math.abs(x - this.player2.x) < exclusion
+    );
     const spike = this.spikes.create(x, this.groundY - 16, 'spike');
     spike.setSize(24, 28);
     spike.setOffset(4, 4);
