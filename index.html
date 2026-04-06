@@ -66,9 +66,7 @@
 
         this.gameOver = false;
 
-        this.physics.add.overlap(this.player, this.spikes, () => {
-          this.triggerGameOver();
-        });
+        this.spikeOverlap = this.physics.add.overlap(this.player, this.spikes, this.triggerGameOver, null, this);
 
         // Spawn on a random interval
         this.scheduleSpike();
@@ -101,6 +99,7 @@
         if (this.gameOver) return;
         this.gameOver = true;
 
+        this.spikeOverlap.destroy();
         this.player.setTint(0xff0000);
         this.player.setVelocity(0, 0);
         this.player.body.setAllowGravity(false);
