@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Spike Game</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: #1a1a2e; display: flex; justify-content: center; align-items: center; height: 100vh; }
+  </style>
+</head>
+<body>
+  <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
+  <script>
+    class GameScene extends Phaser.Scene {
+      constructor() {
+        super({ key: 'GameScene' });
+      }
+
+      preload() {}
+
+      create() {}
+
+      update() {}
+    }
+
+    const config = {
+      type: Phaser.AUTO,
+      width: 800,
+      height: 400,
+      backgroundColor: '#1a1a2e',
+      physics: {
+        default: 'arcade',
+        arcade: { gravity: { y: 600 }, debug: false }
+      },
+      scene: GameScene
+    };
+
+    new Phaser.Game(config);
+  </script>
+</body>
+</html>
