@@ -21,7 +21,8 @@
 
       create() {
         // Ground
-        const groundY = 360;
+        this.groundY = 360;
+        const groundY = this.groundY;
         const groundHeight = 40;
 
         const groundGfx = this.add.graphics();
@@ -98,9 +99,11 @@
       }
 
       spawnSpike() {
+        if (this.spikes.getLength() >= 12) {
+          this.spikes.getFirstAlive(false)?.destroy();
+        }
         const x = Phaser.Math.Between(40, 760);
-        const groundY = 360;
-        const spike = this.spikes.create(x, groundY - 16, 'spike');
+        const spike = this.spikes.create(x, this.groundY - 16, 'spike');
         spike.setSize(24, 28);
         spike.setOffset(4, 4);
         spike.refreshBody();
