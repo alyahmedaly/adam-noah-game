@@ -32,9 +32,48 @@
         const groundBody = this.ground.create(400, groundY + groundHeight / 2, null);
         groundBody.setSize(800, groundHeight);
         groundBody.refreshBody();
+
+        // Player
+        const playerGfx = this.make.graphics({ x: 0, y: 0, add: false });
+        playerGfx.fillStyle(0x00d4ff, 1);
+        playerGfx.fillRect(0, 0, 32, 48);
+        playerGfx.generateTexture('player', 32, 48);
+        playerGfx.destroy();
+
+        this.player = this.physics.add.sprite(100, groundY - 24, 'player');
+        this.player.setBounce(0);
+        this.player.setCollideWorldBounds(true);
+        this.physics.add.collider(this.player, this.ground);
+
+        // Input
+        this.cursors = this.input.keyboard.createCursorKeys();
+        this.wasd = this.input.keyboard.addKeys({
+          left: Phaser.Input.Keyboard.KeyCodes.A,
+          right: Phaser.Input.Keyboard.KeyCodes.D,
+          up: Phaser.Input.Keyboard.KeyCodes.W
+        });
       }
 
-      update() {}
+      update() {
+        const onGround = this.player.body.blocked.down;
+        const goLeft = this.cursors.left.isDown || this.wasd.left.isDown;
+        const goRight = this.cursors.right.isDown || this.wasd.right.isDown;
+        const jump = Phaser.Input.Keyboard.JustDown(this.cursors.up) ||
+                     Phaser.Input.Keyboard.JustDown(this.cursors.space) ||
+                     Phaser.Input.Keyboard.JustDown(this.wasd.up);
+
+        if (goLeft) {
+          this.player.setVelocityX(-220);
+        } else if (goRight) {
+          this.player.setVelocityX(220);
+        } else {
+          this.player.setVelocityX(0);
+        }
+
+        if (jump && onGround) {
+          this.player.setVelocityY(-520);
+        }
+      }
     }
 
     const config = {
