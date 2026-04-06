@@ -21,14 +21,14 @@
 
       create() {
         // Starfield background
+        const starGfx = this.add.graphics();
         for (let i = 0; i < 80; i++) {
-          const x = Phaser.Math.Between(0, 800);
-          const y = Phaser.Math.Between(0, 360);
-          const r = Phaser.Math.FloatBetween(1, 2.5);
-          const alpha = Phaser.Math.FloatBetween(0.3, 1);
-          const star = this.add.graphics();
-          star.fillStyle(0xffffff, alpha);
-          star.fillCircle(x, y, r);
+          starGfx.fillStyle(0xffffff, Phaser.Math.FloatBetween(0.3, 1));
+          starGfx.fillCircle(
+            Phaser.Math.Between(0, 797),
+            Phaser.Math.Between(0, 355),
+            Phaser.Math.FloatBetween(1, 2.5)
+          );
         }
 
         // Ground
