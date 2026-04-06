@@ -4,6 +4,7 @@ import { createSpikeTexture, scheduleSpike } from './spikes.js';
 import { createTitle, createScore, createLivesHUD, updateLivesHUD, showPlayerDead, showGameOver } from './ui.js';
 import { createLuckyBlockTexture, spawnLuckyBlock, scheduleLuckyBlockRespawns } from './luckyblock.js';
 import { createHeartTexture, scheduleHeartSpawns } from './heartpickup.js';
+import { createPlayerSoundHandles, playPlayerSound, preloadPlayerSounds } from './audio.js';
 
 const DIFFICULTY = {
   noob:   { maxLives: 5, color1: 0xff8800, color2: 0xffcc00, nameColor1: '#ff8800', nameColor2: '#ffcc00' },
@@ -18,7 +19,9 @@ export class GameScene extends Phaser.Scene {
     super({ key: 'GameScene' });
   }
 
-  preload() {}
+  preload() {
+    preloadPlayerSounds(this);
+  }
 
   create() {
     const diff = this.scene.settings.data?.difficulty || 'normal';
@@ -41,6 +44,7 @@ export class GameScene extends Phaser.Scene {
     this.player2 = player2;
     this.wasd = wasd;
     this.cursors = cursors;
+    this.playerSounds = createPlayerSoundHandles(this);
 
     createSpikeTexture(this);
     this.spikes = this.physics.add.staticGroup();
@@ -92,11 +96,13 @@ export class GameScene extends Phaser.Scene {
       this.lives1--;
       updateLivesHUD(this, this.lives1, this.lives2);
       if (this.lives1 <= 0) return this.eliminatePlayer(1);
+      playPlayerSound(this, 'adam', 'hurt');
       respawnInvincible(this, this.player1, this.spike1Overlap, this.color1);
     } else {
       this.lives2--;
       updateLivesHUD(this, this.lives1, this.lives2);
       if (this.lives2 <= 0) return this.eliminatePlayer(2);
+      playPlayerSound(this, 'noah', 'hurt');
       respawnInvincible(this, this.player2, this.spike2Overlap, this.color2);
     }
   }
@@ -107,12 +113,14 @@ export class GameScene extends Phaser.Scene {
       this.score1 = this.score;
       this.spike1Overlap.destroy();
       freezePlayer(this.player1);
+      playPlayerSound(this, 'adam', 'dies');
       showPlayerDead(this, 'Adam', this.nameColor1, this.score1, this.player1.x);
     } else {
       this.player2Dead = true;
       this.score2 = this.score;
       this.spike2Overlap.destroy();
       freezePlayer(this.player2);
+      playPlayerSound(this, 'noah', 'dies');
       showPlayerDead(this, 'Noah', this.nameColor2, this.score2, this.player2.x);
     }
 

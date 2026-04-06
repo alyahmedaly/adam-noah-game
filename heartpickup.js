@@ -1,3 +1,5 @@
+import { playPlayerSound } from './audio.js';
+
 const HEART_SIZE = 24;
 
 export function createHeartTexture(scene) {
@@ -62,6 +64,7 @@ function collectHeart(scene, heart, playerNum) {
   if (heart.collected) return;
   const lives = playerNum === 1 ? scene.lives1 : scene.lives2;
   if (lives >= scene.maxLives) return; // already full
+  const playerName = playerNum === 1 ? 'adam' : 'noah';
 
   heart.collected = true;
   scene.tweens.killTweensOf(heart);
@@ -76,6 +79,7 @@ function collectHeart(scene, heart, playerNum) {
 
   // Update HUD
   scene.updateLivesHUD();
+  playPlayerSound(scene, playerName, 'heartAdded');
 
   // Floating text
   const player = playerNum === 1 ? scene.player1 : scene.player2;

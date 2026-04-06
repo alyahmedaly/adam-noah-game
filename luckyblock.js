@@ -1,3 +1,5 @@
+import { playPlayerSound } from './audio.js';
+
 const BLOCK_SIZE = 32;
 const FLOAT_Y_OFFSET = 120;
 
@@ -63,6 +65,9 @@ function hitBlock(scene, block, playerNum) {
 function activateSuperpower(scene, playerNum) {
   const player = playerNum === 1 ? scene.player1 : scene.player2;
   const color  = playerNum === 1 ? (scene.color1 ?? 0x00aaff) : (scene.color2 ?? 0x00cc44);
+  const playerName = playerNum === 1 ? 'adam' : 'noah';
+
+  playPlayerSound(scene, playerName, 'luckyBlock');
 
   // Clear all current spikes
   scene.spikes.clear(true, true);
