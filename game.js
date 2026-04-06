@@ -6,9 +6,9 @@ import { createLuckyBlockTexture, spawnLuckyBlock, scheduleLuckyBlockRespawns } 
 import { createHeartTexture, scheduleHeartSpawns } from './heartpickup.js';
 
 const DIFFICULTY = {
-  noob:   { maxLives: 5 },
-  normal: { maxLives: 3 },
-  ninja:  { maxLives: 2 },
+  noob:   { maxLives: 5, color1: 0xff8800, color2: 0xffcc00, nameColor1: '#ff8800', nameColor2: '#ffcc00' },
+  normal: { maxLives: 3, color1: 0x00aaff, color2: 0x00cc44, nameColor1: '#00aaff', nameColor2: '#00cc44' },
+  ninja:  { maxLives: 2, color1: 0x880088, color2: 0x440044, nameColor1: '#cc44cc', nameColor2: '#aa22aa' },
 };
 
 const RESPAWN_INVINCIBILITY_MS = 2000;
@@ -23,7 +23,12 @@ export class GameScene extends Phaser.Scene {
   create() {
     const diff = this.scene.settings.data?.difficulty || 'normal';
     this.difficulty = diff;
-    this.maxLives = DIFFICULTY[diff]?.maxLives ?? 3;
+    const diffCfg = DIFFICULTY[diff] ?? DIFFICULTY.normal;
+    this.maxLives  = diffCfg.maxLives;
+    this.color1    = diffCfg.color1;
+    this.color2    = diffCfg.color2;
+    this.nameColor1 = diffCfg.nameColor1;
+    this.nameColor2 = diffCfg.nameColor2;
 
     this.groundY = 360;
     const groundHeight = 40;
@@ -87,12 +92,12 @@ export class GameScene extends Phaser.Scene {
       this.lives1--;
       updateLivesHUD(this, this.lives1, this.lives2);
       if (this.lives1 <= 0) return this.eliminatePlayer(1);
-      respawnInvincible(this, this.player1, this.spike1Overlap, 0x00aaff);
+      respawnInvincible(this, this.player1, this.spike1Overlap, this.color1);
     } else {
       this.lives2--;
       updateLivesHUD(this, this.lives1, this.lives2);
       if (this.lives2 <= 0) return this.eliminatePlayer(2);
-      respawnInvincible(this, this.player2, this.spike2Overlap, 0x00cc44);
+      respawnInvincible(this, this.player2, this.spike2Overlap, this.color2);
     }
   }
 
@@ -102,13 +107,13 @@ export class GameScene extends Phaser.Scene {
       this.score1 = this.score;
       this.spike1Overlap.destroy();
       freezePlayer(this.player1);
-      showPlayerDead(this, 'Adam', '#00aaff', this.score1, this.player1.x);
+      showPlayerDead(this, 'Adam', this.nameColor1, this.score1, this.player1.x);
     } else {
       this.player2Dead = true;
       this.score2 = this.score;
       this.spike2Overlap.destroy();
       freezePlayer(this.player2);
-      showPlayerDead(this, 'Noah', '#00cc44', this.score2, this.player2.x);
+      showPlayerDead(this, 'Noah', this.nameColor2, this.score2, this.player2.x);
     }
 
     if (this.player1Dead && this.player2Dead) {

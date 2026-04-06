@@ -4,17 +4,43 @@ const SPIKE_CONFIG = {
   ninja:  { base: 900,  baseDecrement: 35, jitter: 600,  jitterDecrement: 20, minBase: 200, minJitter: 100 },
 };
 
+// Per-mode spike geometry: [outerColor, innerColor, highlightColor, baseColor, width, height]
+const SPIKE_SHAPE = {
+  noob:   { w: 32, h: 30, outer: 0x888888, inner: 0xaaaaaa, shine: 0xdddddd, base: 0x666666 },
+  normal: { w: 32, h: 44, outer: 0x880000, inner: 0xdd2222, shine: 0xff6666, base: 0x555555 },
+  ninja:  { w: 28, h: 56, outer: 0x220033, inner: 0x660099, shine: 0xcc44ff, base: 0x111111 },
+};
+
 export function createSpikeTexture(scene) {
+  const diff = scene.difficulty || 'normal';
+  const s = SPIKE_SHAPE[diff] ?? SPIKE_SHAPE.normal;
+  const { w, h, outer, inner, shine, base } = s;
+
   const gfx = scene.make.graphics({ x: 0, y: 0, add: false });
-  gfx.fillStyle(0x880000, 1);
-  gfx.fillTriangle(4, 40, 16, 0, 28, 40);
-  gfx.fillStyle(0xdd2222, 1);
-  gfx.fillTriangle(6, 40, 16, 2, 26, 40);
-  gfx.fillStyle(0xff6666, 1);
-  gfx.fillTriangle(6, 40, 16, 2, 14, 40);
-  gfx.fillStyle(0x555555, 1);
-  gfx.fillRect(4, 38, 24, 4);
-  gfx.generateTexture('spike', 32, 44);
+
+  // Outer dark triangle
+  gfx.fillStyle(outer, 1);
+  gfx.fillTriangle(2, h - 4, w / 2, 0, w - 2, h - 4);
+
+  // Inner main triangle
+  gfx.fillStyle(inner, 1);
+  gfx.fillTriangle(4, h - 4, w / 2, 2, w - 4, h - 4);
+
+  // Highlight stripe (left face)
+  gfx.fillStyle(shine, 1);
+  gfx.fillTriangle(4, h - 4, w / 2, 2, Math.floor(w / 2) - 2, h - 4);
+
+  // Base bar
+  gfx.fillStyle(base, 1);
+  gfx.fillRect(2, h - 6, w - 4, 6);
+
+  // Ninja gets a glow outline effect
+  if (diff === 'ninja') {
+    gfx.lineStyle(1, 0xee88ff, 0.7);
+    gfx.strokeTriangle(2, h - 4, w / 2, 0, w - 2, h - 4);
+  }
+
+  gfx.generateTexture('spike', w, h);
   gfx.destroy();
 }
 
@@ -35,6 +61,9 @@ function spawnSpike(scene) {
     scene.spikes.getFirst()?.destroy();
   }
 
+  const diff = scene.difficulty || 'normal';
+  const s = SPIKE_SHAPE[diff] ?? SPIKE_SHAPE.normal;
+
   // Only exclude living players from the spawn zone
   const exclusion = 60;
   let x;
@@ -49,8 +78,9 @@ function spawnSpike(scene) {
     )
   );
 
-  const spike = scene.spikes.create(x, scene.groundY - 22, 'spike');
-  spike.setSize(20, 38);
+  const halfH = Math.floor(s.h / 2);
+  const spike = scene.spikes.create(x, scene.groundY - halfH + 3, 'spike');
+  spike.setSize(s.w - 12, s.h - 8);
   spike.setOffset(6, 4);
   spike.refreshBody();
   scene.time.delayedCall(20000, () => { if (spike?.active) spike.destroy(); });

@@ -62,7 +62,7 @@ function hitBlock(scene, block, playerNum) {
 
 function activateSuperpower(scene, playerNum) {
   const player = playerNum === 1 ? scene.player1 : scene.player2;
-  const color  = playerNum === 1 ? 0x00aaff : 0x00cc44;
+  const color  = playerNum === 1 ? (scene.color1 ?? 0x00aaff) : (scene.color2 ?? 0x00cc44);
 
   // Clear all current spikes
   scene.spikes.clear(true, true);

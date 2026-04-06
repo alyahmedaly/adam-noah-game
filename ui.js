@@ -22,11 +22,11 @@ export function createScore(scene) {
 
   // Best score labels (corners)
   scene.add.text(12, 12, 'Adam best: ' + getBest('adam'), {
-    fontSize: '13px', color: '#00aaff', fontFamily: 'monospace'
+    fontSize: '13px', color: scene.nameColor1 ?? '#00aaff', fontFamily: 'monospace'
   }).setDepth(1);
 
   scene.add.text(788, 12, 'Noah best: ' + getBest('noah'), {
-    fontSize: '13px', color: '#00cc44', fontFamily: 'monospace'
+    fontSize: '13px', color: scene.nameColor2 ?? '#00cc44', fontFamily: 'monospace'
   }).setOrigin(1, 0).setDepth(1);
 
   scene.time.addEvent({
@@ -45,10 +45,10 @@ export function createLivesHUD(scene) {
   // Adam lives (bottom-left)
   scene.livesTexts = {
     adam: scene.add.text(12, scene.groundY + 8, '❤️❤️❤️ Adam', {
-      fontSize: '14px', color: '#00aaff', fontFamily: 'monospace'
+      fontSize: '14px', color: scene.nameColor1 ?? '#00aaff', fontFamily: 'monospace'
     }).setDepth(2),
     noah: scene.add.text(788, scene.groundY + 8, 'Noah ❤️❤️❤️', {
-      fontSize: '14px', color: '#00cc44', fontFamily: 'monospace'
+      fontSize: '14px', color: scene.nameColor2 ?? '#00cc44', fontFamily: 'monospace'
     }).setOrigin(1, 0).setDepth(2)
   };
 }
