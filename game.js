@@ -89,11 +89,21 @@ export class GameScene extends Phaser.Scene {
       fontSize: '12px', color: '#00cc44', fontFamily: 'monospace'
     }).setOrigin(0.5);
 
-    // Spike texture
+    // Spike texture — narrow tall triangle with metallic shading
     const spikeGfx = this.make.graphics({ x: 0, y: 0, add: false });
-    spikeGfx.fillStyle(0xff4444, 1);
-    spikeGfx.fillTriangle(0, 32, 16, 0, 32, 32);
-    spikeGfx.generateTexture('spike', 32, 32);
+    // Dark base shadow
+    spikeGfx.fillStyle(0x880000, 1);
+    spikeGfx.fillTriangle(4, 40, 16, 0, 28, 40);
+    // Main body
+    spikeGfx.fillStyle(0xdd2222, 1);
+    spikeGfx.fillTriangle(6, 40, 16, 2, 26, 40);
+    // Highlight (bright left face)
+    spikeGfx.fillStyle(0xff6666, 1);
+    spikeGfx.fillTriangle(6, 40, 16, 2, 14, 40);
+    // Base bar
+    spikeGfx.fillStyle(0x555555, 1);
+    spikeGfx.fillRect(4, 38, 24, 4);
+    spikeGfx.generateTexture('spike', 32, 44);
     spikeGfx.destroy();
 
     this.spikes = this.physics.add.staticGroup();
@@ -227,9 +237,9 @@ export class GameScene extends Phaser.Scene {
       Math.abs(x - this.player1.x) < exclusion ||
       Math.abs(x - this.player2.x) < exclusion
     );
-    const spike = this.spikes.create(x, this.groundY - 16, 'spike');
-    spike.setSize(24, 28);
-    spike.setOffset(4, 4);
+    const spike = this.spikes.create(x, this.groundY - 22, 'spike');
+    spike.setSize(20, 38);
+    spike.setOffset(6, 4);
     spike.refreshBody();
     this.time.delayedCall(20000, () => { if (spike?.active) spike.destroy(); });
   }
