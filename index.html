@@ -148,7 +148,11 @@
         if (this.spikes.getLength() >= 12) {
           this.spikes.getFirst()?.destroy();
         }
-        const x = Phaser.Math.Between(40, 760);
+        const exclusion = 60; // half-width buffer around player
+        let x;
+        do {
+          x = Phaser.Math.Between(40, 760);
+        } while (Math.abs(x - this.player.x) < exclusion);
         const spike = this.spikes.create(x, this.groundY - 16, 'spike');
         spike.setSize(24, 28);
         spike.setOffset(4, 4);
