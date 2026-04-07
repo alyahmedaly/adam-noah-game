@@ -2,6 +2,20 @@
     box-sizing: border-box;
 }
 
+/* Force landscape on mobile by rotating the viewport */
+@media (max-width: 600px) and (orientation: portrait) {
+    html {
+        transform: rotate(90deg);
+        transform-origin: left top;
+        width: 100vh;
+        height: 100vw;
+        overflow: hidden;
+        position: absolute;
+        top: 100%;
+        left: 0;
+    }
+}
+
 body {
     margin: 0;
     min-height: 100vh;

@@ -60,6 +60,8 @@ export function createLivesHUD(scene) {
       fontSize: `${Math.round(14 * textScale)}px`, color: scene.nameColor2 ?? '#00cc44', fontFamily: 'monospace'
     }).setOrigin(1, 0).setDepth(2)
   };
+
+  updateLivesHUD(scene, scene.lives1 ?? scene.maxLives ?? 3, scene.lives2 ?? scene.maxLives ?? 3);
 }
 
 export function updateLivesHUD(scene, adamLives, noahLives) {

@@ -363,11 +363,22 @@ function showBumpEffect(scene, attacker, defender) {
   });
 }
 
+const COYOTE_FRAMES = 6;
+
 function movePlayer(scene, player, goLeft, goRight, jump) {
   if (!player?.body) return;
   const onGround = player.body.blocked.down;
   const settings = scene.intensity?.settings;
   const wasOnGround = player.wasOnGround ?? true;
+
+  // Coyote time: count frames since last grounded so jump still works
+  // for a few frames after walking off an edge or brief physics gap
+  if (onGround) {
+    player._coyoteFrames = COYOTE_FRAMES;
+  } else if (player._coyoteFrames > 0) {
+    player._coyoteFrames--;
+  }
+  const canJump = (player._coyoteFrames ?? 0) > 0;
 
   if (goLeft) {
     player.setVelocityX(-220);
@@ -376,8 +387,9 @@ function movePlayer(scene, player, goLeft, goRight, jump) {
   } else {
     player.setVelocityX(0);
   }
-  if (jump && onGround) {
+  if (jump && canJump) {
     player.setVelocityY(-520);
+    player._coyoteFrames = 0;
     player.juiceX = 1.12;
     player.juiceY = 0.86;
   }

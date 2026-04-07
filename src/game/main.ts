@@ -20,8 +20,11 @@ const StartGame = async (parent: string): Promise<Phaser.Game> => {
         import('./player-select.ts'),
     ]);
 
-    const viewportWidth = window.innerWidth;
-    const viewportHeight = window.innerHeight;
+    // On mobile, swap dimensions if portrait so the game is always landscape
+    const rawW = window.innerWidth;
+    const rawH = window.innerHeight;
+    const viewportWidth = rawW < rawH ? rawH : rawW;
+    const viewportHeight = rawW < rawH ? rawW : rawH;
 
     const config: Phaser.Types.Core.GameConfig = {
         type: Phaser.AUTO,
@@ -29,7 +32,6 @@ const StartGame = async (parent: string): Promise<Phaser.Game> => {
         height: viewportHeight,
         parent,
         backgroundColor: '#1a1a2e',
-        resolution: Math.min(window.devicePixelRatio || 1, 2),
         autoRound: false,
         input: {
             gamepad: true,

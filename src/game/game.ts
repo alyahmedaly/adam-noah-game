@@ -76,25 +76,21 @@ export class GameScene extends Phaser.Scene {
     this.lives1 = this.maxLives;
     this.lives2 = this.maxLives;
 
-    this.spike1Overlap = this.physics.add.overlap(
-      this.player1, this.spikes, (_player, spike) => handleLuckyBlockSpikeContact(this, 1, spike), null, this
-    );
-    this.spike2Overlap = this.physics.add.overlap(
-      this.player2, this.spikes, (_player, spike) => handleLuckyBlockSpikeContact(this, 2, spike), null, this
-    );
-    this.bomb1Overlap = this.physics.add.overlap(
-      this.player1, this.bombs, (_player, bomb) => handleBombContact(this, 1, bomb), null, this
-    );
-    this.bomb2Overlap = this.physics.add.overlap(
-      this.player2, this.bombs, (_player, bomb) => handleBombContact(this, 2, bomb), null, this
-    );
-    this.playerBumpCollider = this.physics.add.collider(
-      this.player1,
-      this.player2,
-      () => handlePlayerBump(this),
-      null,
-      this
-    );
+    this.spike1Overlap = this.player1
+      ? this.physics.add.overlap(this.player1, this.spikes, (_player, spike) => handleLuckyBlockSpikeContact(this, 1, spike), null, this)
+      : null;
+    this.spike2Overlap = this.player2
+      ? this.physics.add.overlap(this.player2, this.spikes, (_player, spike) => handleLuckyBlockSpikeContact(this, 2, spike), null, this)
+      : null;
+    this.bomb1Overlap = this.player1
+      ? this.physics.add.overlap(this.player1, this.bombs, (_player, bomb) => handleBombContact(this, 1, bomb), null, this)
+      : null;
+    this.bomb2Overlap = this.player2
+      ? this.physics.add.overlap(this.player2, this.bombs, (_player, bomb) => handleBombContact(this, 2, bomb), null, this)
+      : null;
+    this.playerBumpCollider = (this.player1 && this.player2)
+      ? this.physics.add.collider(this.player1, this.player2, () => handlePlayerBump(this), null, this)
+      : null;
 
     createLuckyBlockTexture(this);
     spawnLuckyBlock(this);
@@ -139,7 +135,7 @@ export class GameScene extends Phaser.Scene {
     }
 
     updateBoss(this);
-    updatePistol(this, this.wasd, this.cursors);
+    updatePistol(this, this.wasd, this.cursors, this.touchInput, this.mobilePlayer);
   }
 
   loseLife(num) {
@@ -168,17 +164,17 @@ export class GameScene extends Phaser.Scene {
     if (num === 1) {
       this.player1Dead = true;
       this.score1 = this.score;
-      this.spike1Overlap.destroy();
+      this.spike1Overlap?.destroy();
       freezePlayer(this.player1);
       this.audio.playForPlayer(1, PLAYER_SOUND_EVENTS.DIES);
-      showPlayerDead(this, 'Adam', this.nameColor1, this.score1, this.player1.x);
+      if (this.player1) showPlayerDead(this, 'Adam', this.nameColor1, this.score1, this.player1.x);
     } else {
       this.player2Dead = true;
       this.score2 = this.score;
-      this.spike2Overlap.destroy();
+      this.spike2Overlap?.destroy();
       freezePlayer(this.player2);
       this.audio.playForPlayer(2, PLAYER_SOUND_EVENTS.DIES);
-      showPlayerDead(this, 'Noah', this.nameColor2, this.score2, this.player2.x);
+      if (this.player2) showPlayerDead(this, 'Noah', this.nameColor2, this.score2, this.player2.x);
     }
 
     const p1Counts = !this.mobilePlayer || this.mobilePlayer === 'adam';

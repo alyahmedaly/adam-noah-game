@@ -11,7 +11,9 @@ export interface TouchInput {
   left: boolean;
   right: boolean;
   jump: boolean;
+  shoot: boolean;
   justJump: () => boolean;
+  justShoot: () => boolean;
 }
 
 export function createTouchControls(scene: Phaser.Scene): TouchInput {
@@ -52,8 +54,19 @@ export function createTouchControls(scene: Phaser.Scene): TouchInput {
     fontSize: '22px', color: '#ffffff', fontFamily: 'monospace'
   }).setOrigin(0.5).setScrollFactor(0).setDepth(101);
 
+  const shootCircle = scene.add.circle(btnX, btnY - 96, JUMP_BTN_RADIUS * 0.8, 0xff6b6b, ALPHA_IDLE)
+    .setScrollFactor(0)
+    .setDepth(100)
+    .setInteractive();
+
+  scene.add.text(btnX, btnY - 96, 'F', {
+    fontSize: '20px', color: '#ffffff', fontFamily: 'monospace', fontStyle: 'bold'
+  }).setOrigin(0.5).setScrollFactor(0).setDepth(101);
+
   let _jumpDown = false;
   let _jumpConsumed = false;
+  let _shootDown = false;
+  let _shootConsumed = false;
 
   jumpCircle.on('pointerdown', () => {
     _jumpDown = true;
@@ -69,6 +82,20 @@ export function createTouchControls(scene: Phaser.Scene): TouchInput {
     jumpCircle.setAlpha(ALPHA_IDLE);
   });
 
+  shootCircle.on('pointerdown', () => {
+    _shootDown = true;
+    _shootConsumed = false;
+    shootCircle.setAlpha(ALPHA_ACTIVE);
+  });
+  shootCircle.on('pointerup', () => {
+    _shootDown = false;
+    shootCircle.setAlpha(ALPHA_IDLE);
+  });
+  shootCircle.on('pointerout', () => {
+    _shootDown = false;
+    shootCircle.setAlpha(ALPHA_IDLE);
+  });
+
   joystick.on('update', () => {
     thumb.setAlpha(joystick.force > 0 ? ALPHA_ACTIVE : ALPHA_IDLE);
   });
@@ -77,9 +104,17 @@ export function createTouchControls(scene: Phaser.Scene): TouchInput {
     get left() { return joystick.left; },
     get right() { return joystick.right; },
     get jump() { return _jumpDown; },
+    get shoot() { return _shootDown; },
     justJump() {
       if (_jumpDown && !_jumpConsumed) {
         _jumpConsumed = true;
+        return true;
+      }
+      return false;
+    },
+    justShoot() {
+      if (_shootDown && !_shootConsumed) {
+        _shootConsumed = true;
         return true;
       }
       return false;

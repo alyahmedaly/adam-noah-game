@@ -46,16 +46,16 @@ function createScene({ axisX = 0, axisY = 0, buttonPressed = false, connected = 
   };
 }
 
-function createWasd({ left = false, right = false, justDown = false } = {}) {
+function createWasd({ left = false, right = false, up = false } = {}) {
   return {
     left: { isDown: left },
     right: { isDown: right },
-    up: { justDown },
+    up: { isDown: up },
   };
 }
 
 test('uses keyboard movement when no gamepad is connected', () => {
-  const input = getAdamInput(createScene({ connected: false }), createWasd({ left: true, justDown: true }));
+  const input = getAdamInput(createScene({ connected: false }), createWasd({ left: true, up: true }));
   assert.deepEqual(input, { left: true, right: false, jump: true });
 });
 
