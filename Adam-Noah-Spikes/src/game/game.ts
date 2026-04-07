@@ -2,7 +2,7 @@
 
 import { createBackground, createGround, updateBackground } from './background.ts';
 import { createPlayers, handlePlayerBump, updatePlayers } from './players.ts';
-import { createSpikeTexture, scheduleSpike, updateSpikes } from './spikes.ts';
+import { createSpikeTexture, handleBombContact, scheduleBomb, scheduleSpike, updateSpikes } from './spikes.ts';
 import { createTitle, createScore, createLivesHUD, updateLivesHUD, showPlayerDead, showGameOver } from './ui.ts';
 import { createLuckyBlockTexture, handleLuckyBlockSpikeContact, spawnLuckyBlock, scheduleLuckyBlockRespawns } from './luckyblock.ts';
 import { createHeartTexture, scheduleHeartSpawns } from './heartpickup.ts';
@@ -55,6 +55,7 @@ export class GameScene extends Phaser.Scene {
 
     createSpikeTexture(this);
     this.spikes = this.physics.add.staticGroup();
+    this.bombs = this.physics.add.group();
     this.gameOver = false;
     this.player1Dead = false;
     this.player2Dead = false;
@@ -66,6 +67,12 @@ export class GameScene extends Phaser.Scene {
     );
     this.spike2Overlap = this.physics.add.overlap(
       this.player2, this.spikes, (_player, spike) => handleLuckyBlockSpikeContact(this, 2, spike), null, this
+    );
+    this.bomb1Overlap = this.physics.add.overlap(
+      this.player1, this.bombs, (_player, bomb) => handleBombContact(this, 1, bomb), null, this
+    );
+    this.bomb2Overlap = this.physics.add.overlap(
+      this.player2, this.bombs, (_player, bomb) => handleBombContact(this, 2, bomb), null, this
     );
     this.playerBumpCollider = this.physics.add.collider(
       this.player1,
@@ -86,6 +93,7 @@ export class GameScene extends Phaser.Scene {
     createScore(this);
     createLivesHUD(this);
     scheduleSpike(this);
+    scheduleBomb(this);
 
     // Expose lives HUD updater for pickups
     this.updateLivesHUD = () => updateLivesHUD(this, this.lives1, this.lives2);
