@@ -1,6 +1,7 @@
 // @ts-nocheck
 
 import { getBossRageMultiplier } from './intensity.ts';
+import { getLivingPlayers } from './participants.ts';
 import { getContentScale, getTextScale } from './scale.ts';
 
 const BOSS_MAX_HP = 10;
@@ -157,12 +158,10 @@ function _bossShoot(scene) {
   const rageMultiplier = getBossRageMultiplier(scene);
 
   // Pick a random living player to target
-  const targets = [];
-  if (!scene.player1Dead) targets.push(scene.player1);
-  if (!scene.player2Dead) targets.push(scene.player2);
+  const targets = getLivingPlayers(scene);
   if (targets.length === 0) return;
 
-  const target = targets[Phaser.Math.Between(0, targets.length - 1)];
+  const { player: target } = targets[Phaser.Math.Between(0, targets.length - 1)];
   const proj = scene.bossProjectiles.create(scene.boss.x, scene.boss.y + 30, 'bossProjectile');
   proj.baseScale = getContentScale(scene);
   proj.setScale(proj.baseScale);

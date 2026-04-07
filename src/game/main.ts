@@ -32,7 +32,6 @@ const StartGame = async (parent: string): Promise<Phaser.Game> => {
         height: viewportHeight,
         parent,
         backgroundColor: '#1a1a2e',
-        resolution: Math.min(window.devicePixelRatio || 1, 2),
         autoRound: false,
         input: {
             gamepad: true,

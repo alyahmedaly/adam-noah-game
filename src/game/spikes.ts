@@ -1,6 +1,7 @@
 // @ts-nocheck
 
 import { getSpikeDelayMultiplier } from './intensity.ts';
+import { getLivingPlayers } from './participants.ts';
 import { getContentScale } from './scale.ts';
 
 const BOMB_SPAWN_MIN_MS = 8500;
@@ -156,6 +157,7 @@ function spawnSpike(scene) {
   const s = SPIKE_SHAPE[diff] ?? SPIKE_SHAPE.normal;
 
   const stageWidth = scene.scale.width;
+  const livingPlayers = getLivingPlayers(scene);
   // Only exclude living players from the spawn zone
   const exclusion = 60;
   let x;
@@ -165,8 +167,7 @@ function spawnSpike(scene) {
     attempts++;
   } while (
     attempts < 20 && (
-      (!scene.player1Dead && Math.abs(x - scene.player1.x) < exclusion) ||
-      (!scene.player2Dead && Math.abs(x - scene.player2.x) < exclusion)
+      livingPlayers.some(({ player }) => Math.abs(x - player.x) < exclusion)
     )
   );
 

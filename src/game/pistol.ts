@@ -40,13 +40,15 @@ export function givePistol(scene, playerNum) {
   }
 }
 
-export function updatePistol(scene, wasd, cursors) {
+export function updatePistol(scene, wasd, cursors, touchInput = null, mobilePlayer = null) {
   const now = scene.time.now;
+  const adamTouchShoot = mobilePlayer === 'adam' && Boolean(touchInput?.justShoot?.());
+  const noahTouchShoot = mobilePlayer === 'noah' && Boolean(touchInput?.justShoot?.());
 
   // Player 1 shoots with R
   if (scene.hasPistol1 && !scene.player1Dead) {
     const rKey = scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.R);
-    if (rKey.isDown && now - (scene.lastShot1 || 0) > SHOOT_COOLDOWN) {
+    if ((rKey.isDown || adamTouchShoot) && now - (scene.lastShot1 || 0) > SHOOT_COOLDOWN) {
       scene.lastShot1 = now;
       _fireBullet(scene, scene.player1);
     }
@@ -55,7 +57,7 @@ export function updatePistol(scene, wasd, cursors) {
   // Player 2 shoots with L
   if (scene.hasPistol2 && !scene.player2Dead) {
     const lKey = scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.L);
-    if (lKey.isDown && now - (scene.lastShot2 || 0) > SHOOT_COOLDOWN) {
+    if ((lKey.isDown || noahTouchShoot) && now - (scene.lastShot2 || 0) > SHOOT_COOLDOWN) {
       scene.lastShot2 = now;
       _fireBullet(scene, scene.player2);
     }
@@ -104,10 +106,10 @@ function _showPistolHUD(scene, playerNum) {
   const textScale = getTextScale(scene);
   const x = playerNum === 1 ? 12 : scene.scale.width - 12;
   const origin = playerNum === 1 ? 0 : 1;
-  const key = playerNum === 1 ? 'adam' : 'noah';
   const shootKey = playerNum === 1 ? 'R' : 'L';
+  const shootLabel = scene.mobilePlayer ? 'FIRE' : `[${shootKey}]`;
 
-  const txt = scene.add.text(x, scene.groundY + 26, `🔫 [${shootKey}]`, {
+  const txt = scene.add.text(x, scene.groundY + 26, `🔫 ${shootLabel}`, {
     fontSize: `${Math.round(12 * textScale)}px`, color: '#ffee00', fontFamily: 'monospace'
   }).setOrigin(origin, 0).setDepth(3);
 

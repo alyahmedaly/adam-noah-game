@@ -135,7 +135,7 @@ export class GameScene extends Phaser.Scene {
     }
 
     updateBoss(this);
-    updatePistol(this, this.wasd, this.cursors);
+    updatePistol(this, this.wasd, this.cursors, this.touchInput, this.mobilePlayer);
   }
 
   loseLife(num) {
