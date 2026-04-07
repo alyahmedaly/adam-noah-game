@@ -1,9 +1,7 @@
 // @ts-nocheck
-import VirtualJoyStick from 'phaser3-rex-plugins/plugins/input/virtualjoystick/VirtualJoyStick.js';
+import { createTouchState } from './touch-state.ts';
+import { getTouchLayout, getTouchRegionAtPoint } from './touch-zones.ts';
 
-const JOYSTICK_RADIUS = 50;
-const JUMP_BTN_RADIUS = 40;
-const MARGIN = 24;
 const ALPHA_IDLE = 0.35;
 const ALPHA_ACTIVE = 0.7;
 
@@ -19,105 +17,103 @@ export interface TouchInput {
 export function createTouchControls(scene: Phaser.Scene): TouchInput {
   const W = scene.scale.width;
   const H = scene.scale.height;
+  const layout = getTouchLayout(W, H);
+  const touch = createTouchState({ movementCenterX: layout.moveZone.centerX });
+  const getPointerId = (pointer) => pointer?.id ?? pointer?.pointerId ?? 0;
+  const syncMovementVisuals = () => {
+    leftPad.setAlpha(touch.left ? ALPHA_ACTIVE : ALPHA_IDLE);
+    rightPad.setAlpha(touch.right ? ALPHA_ACTIVE : ALPHA_IDLE);
+  };
+  const syncActionVisuals = () => {
+    jumpCircle.setAlpha(touch.jump ? ALPHA_ACTIVE : ALPHA_IDLE);
+    shootCircle.setAlpha(touch.shoot ? ALPHA_ACTIVE : ALPHA_IDLE);
+  };
 
-  const joyX = MARGIN + JOYSTICK_RADIUS + 20;
-  const joyY = H - MARGIN - JOYSTICK_RADIUS - 20;
-
-  const base = scene.add.circle(joyX, joyY, JOYSTICK_RADIUS, 0xffffff, 0.15)
+  const leftPad = scene.add.circle(layout.leftPad.x, layout.leftPad.y, layout.leftPad.radius, 0xffffff, ALPHA_IDLE)
     .setScrollFactor(0)
     .setDepth(100);
-  const thumb = scene.add.circle(joyX, joyY, JOYSTICK_RADIUS * 0.5, 0xffffff, ALPHA_IDLE)
+  const rightPad = scene.add.circle(layout.rightPad.x, layout.rightPad.y, layout.rightPad.radius, 0xffffff, ALPHA_IDLE)
     .setScrollFactor(0)
     .setDepth(101);
-
-  const joystick = new VirtualJoyStick(scene, {
-    x: joyX,
-    y: joyY,
-    radius: JOYSTICK_RADIUS,
-    base,
-    thumb,
-    dir: 'left&right',
-    fixed: true,
-    enable: true,
-  });
+  scene.add.text(leftPad.x, leftPad.y, '◀', {
+    fontSize: '20px', color: '#ffffff', fontFamily: 'monospace'
+  }).setOrigin(0.5).setScrollFactor(0).setDepth(103);
+  scene.add.text(rightPad.x, rightPad.y, '▶', {
+    fontSize: '20px', color: '#ffffff', fontFamily: 'monospace'
+  }).setOrigin(0.5).setScrollFactor(0).setDepth(103);
 
   // Jump button (right side)
-  const btnX = W - MARGIN - JUMP_BTN_RADIUS - 20;
-  const btnY = H - MARGIN - JUMP_BTN_RADIUS - 20;
-
-  const jumpCircle = scene.add.circle(btnX, btnY, JUMP_BTN_RADIUS, 0x4c6ef5, ALPHA_IDLE)
+  const jumpCircle = scene.add.circle(
+    layout.jumpButton.x,
+    layout.jumpButton.y,
+    layout.jumpButton.radius,
+    0x4c6ef5,
+    ALPHA_IDLE
+  )
     .setScrollFactor(0)
-    .setDepth(100)
-    .setInteractive();
+    .setDepth(100);
 
-  scene.add.text(btnX, btnY, '▲', {
+  scene.add.text(layout.jumpButton.x, layout.jumpButton.y, '▲', {
     fontSize: '22px', color: '#ffffff', fontFamily: 'monospace'
   }).setOrigin(0.5).setScrollFactor(0).setDepth(101);
 
-  const shootCircle = scene.add.circle(btnX, btnY - 96, JUMP_BTN_RADIUS * 0.8, 0xff6b6b, ALPHA_IDLE)
+  const shootCircle = scene.add.circle(
+    layout.shootButton.x,
+    layout.shootButton.y,
+    layout.shootButton.radius,
+    0xff6b6b,
+    ALPHA_IDLE
+  )
     .setScrollFactor(0)
-    .setDepth(100)
-    .setInteractive();
+    .setDepth(100);
 
-  scene.add.text(btnX, btnY - 96, 'F', {
+  scene.add.text(layout.shootButton.x, layout.shootButton.y, 'F', {
     fontSize: '20px', color: '#ffffff', fontFamily: 'monospace', fontStyle: 'bold'
   }).setOrigin(0.5).setScrollFactor(0).setDepth(101);
 
-  let _jumpDown = false;
-  let _jumpConsumed = false;
-  let _shootDown = false;
-  let _shootConsumed = false;
+  const handlePointerDown = (pointer) => {
+    const region = getTouchRegionAtPoint(W, H, pointer.x, pointer.y);
+    const pointerId = getPointerId(pointer);
 
-  jumpCircle.on('pointerdown', () => {
-    _jumpDown = true;
-    _jumpConsumed = false;
-    jumpCircle.setAlpha(ALPHA_ACTIVE);
-  });
-  jumpCircle.on('pointerup', () => {
-    _jumpDown = false;
-    jumpCircle.setAlpha(ALPHA_IDLE);
-  });
-  jumpCircle.on('pointerout', () => {
-    _jumpDown = false;
-    jumpCircle.setAlpha(ALPHA_IDLE);
-  });
+    if (region === 'left' || region === 'right') {
+      touch.startMovementPointer(pointerId, pointer.x);
+    } else if (region === 'jump' || region === 'shoot') {
+      touch.pressAction(region, pointerId);
+    }
 
-  shootCircle.on('pointerdown', () => {
-    _shootDown = true;
-    _shootConsumed = false;
-    shootCircle.setAlpha(ALPHA_ACTIVE);
-  });
-  shootCircle.on('pointerup', () => {
-    _shootDown = false;
-    shootCircle.setAlpha(ALPHA_IDLE);
-  });
-  shootCircle.on('pointerout', () => {
-    _shootDown = false;
-    shootCircle.setAlpha(ALPHA_IDLE);
-  });
+    syncMovementVisuals();
+    syncActionVisuals();
+  };
 
-  joystick.on('update', () => {
-    thumb.setAlpha(joystick.force > 0 ? ALPHA_ACTIVE : ALPHA_IDLE);
+  const handlePointerUp = (pointer) => {
+    touch.releasePointer(getPointerId(pointer));
+    syncMovementVisuals();
+    syncActionVisuals();
+  };
+
+  scene.input.on('pointerdown', handlePointerDown);
+  scene.input.on('pointermove', (pointer) => {
+    touch.moveMovementPointer(getPointerId(pointer), pointer.x);
+    syncMovementVisuals();
+  });
+  scene.input.on('pointerup', handlePointerUp);
+  scene.input.on('pointerupoutside', handlePointerUp);
+  scene.input.on('gameout', () => {
+    touch.clear();
+    syncMovementVisuals();
+    syncActionVisuals();
   });
 
   return {
-    get left() { return joystick.left; },
-    get right() { return joystick.right; },
-    get jump() { return _jumpDown; },
-    get shoot() { return _shootDown; },
+    get left() { return touch.left; },
+    get right() { return touch.right; },
+    get jump() { return touch.jump; },
+    get shoot() { return touch.shoot; },
     justJump() {
-      if (_jumpDown && !_jumpConsumed) {
-        _jumpConsumed = true;
-        return true;
-      }
-      return false;
+      return touch.consumeAction('jump');
     },
     justShoot() {
-      if (_shootDown && !_shootConsumed) {
-        _shootConsumed = true;
-        return true;
-      }
-      return false;
+      return touch.consumeAction('shoot');
     },
   };
 }

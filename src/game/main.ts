@@ -1,8 +1,12 @@
+/// <reference types="vite/client" />
+
 import Phaser from 'phaser';
+import { getGameViewportSize } from './viewport.ts';
 
 declare global {
     interface Window {
         Phaser: typeof Phaser;
+        __adamGameDebug?: Phaser.Game;
     }
 }
 
@@ -20,11 +24,7 @@ const StartGame = async (parent: string): Promise<Phaser.Game> => {
         import('./player-select.ts'),
     ]);
 
-    // On mobile, swap dimensions if portrait so the game is always landscape
-    const rawW = window.innerWidth;
-    const rawH = window.innerHeight;
-    const viewportWidth = rawW < rawH ? rawH : rawW;
-    const viewportHeight = rawW < rawH ? rawW : rawH;
+    const { width: viewportWidth, height: viewportHeight } = getGameViewportSize(window.innerWidth, window.innerHeight);
 
     const config: Phaser.Types.Core.GameConfig = {
         type: Phaser.AUTO,
@@ -35,6 +35,10 @@ const StartGame = async (parent: string): Promise<Phaser.Game> => {
         autoRound: false,
         input: {
             gamepad: true,
+            activePointers: 3,
+            touch: {
+                capture: true,
+            },
         },
         render: {
             antialias: true,
@@ -59,13 +63,36 @@ const StartGame = async (parent: string): Promise<Phaser.Game> => {
     };
 
     gameInstance = new Phaser.Game(config);
-    window.addEventListener('resize', () => {
+    Phaser.Display.Canvas.TouchAction(gameInstance.canvas, 'none');
+    Phaser.Display.Canvas.UserSelect(gameInstance.canvas, 'none');
+
+    if (import.meta.env.DEV) {
+        window.__adamGameDebug = gameInstance;
+    }
+
+    const refreshBounds = () => {
+        if (!gameInstance) {
+            return;
+        }
+
+        gameInstance.scale.updateBounds();
+    };
+
+    const resizeGame = () => {
         if (!gameInstance) {
             return;
         }
 
         gameInstance.scale.resize(window.innerWidth, window.innerHeight);
+        refreshBounds();
+    };
+
+    requestAnimationFrame(refreshBounds);
+    window.addEventListener('resize', () => {
+        resizeGame();
     });
+
+    window.visualViewport?.addEventListener('resize', resizeGame);
     return gameInstance;
 };
 
