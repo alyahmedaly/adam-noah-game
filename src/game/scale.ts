@@ -1,3 +1,7 @@
+export function isMobile(): boolean {
+  return /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent) || window.innerWidth < 600;
+}
+
 export const BASE_STAGE_WIDTH = 800;
 export const BASE_STAGE_HEIGHT = 400;
 

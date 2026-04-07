@@ -2,6 +2,8 @@
 
 import { createBackground, createGround, updateBackground } from './background.ts';
 import { createPlayers, handlePlayerBump, updatePlayers } from './players.ts';
+import { createTouchControls } from './touch-controls.ts';
+import { isMobile } from './scale.ts';
 import { createSpikeTexture, handleBombContact, scheduleBomb, scheduleSpike, updateSpikes } from './spikes.ts';
 import { createTitle, createScore, createLivesHUD, updateLivesHUD, showPlayerDead, showGameOver } from './ui.ts';
 import { createLuckyBlockTexture, handleLuckyBlockSpikeContact, spawnLuckyBlock, scheduleLuckyBlockRespawns } from './luckyblock.ts';
@@ -30,8 +32,10 @@ export class GameScene extends Phaser.Scene {
 
   create() {
     const diff = this.scene.settings.data?.difficulty || 'normal';
+    const mobilePlayer = this.scene.settings.data?.mobilePlayer || null; // 'adam' | 'noah' | null
     const stageHeight = this.scale.height;
     this.difficulty = diff;
+    this.mobilePlayer = mobilePlayer;
     const diffCfg = DIFFICULTY[diff] ?? DIFFICULTY.normal;
     this.maxLives  = diffCfg.maxLives;
     this.color1    = diffCfg.color1;
@@ -46,11 +50,21 @@ export class GameScene extends Phaser.Scene {
     createBackground(this);
     this.ground = createGround(this, this.groundY, groundHeight);
 
-    const { player1, player2, wasd, cursors } = createPlayers(this, this.groundY, this.ground);
+    const spawnAdam = !mobilePlayer || mobilePlayer === 'adam';
+    const spawnNoah = !mobilePlayer || mobilePlayer === 'noah';
+
+    const { player1, player2, wasd, cursors } = createPlayers(this, this.groundY, this.ground, spawnAdam, spawnNoah);
     this.player1 = player1;
     this.player2 = player2;
     this.wasd = wasd;
     this.cursors = cursors;
+
+    // Touch controls for mobile single-player
+    this.touchInput = null;
+    if (mobilePlayer) {
+      this.touchInput = createTouchControls(this);
+    }
+
     attachSceneAudio(this);
 
     createSpikeTexture(this);
@@ -112,7 +126,9 @@ export class GameScene extends Phaser.Scene {
       this.player1Dead ? null : this.player1,
       this.player2Dead ? null : this.player2,
       this.wasd,
-      this.cursors
+      this.cursors,
+      this.touchInput,
+      this.mobilePlayer
     );
     updateSpikes(this);
 
@@ -165,7 +181,10 @@ export class GameScene extends Phaser.Scene {
       showPlayerDead(this, 'Noah', this.nameColor2, this.score2, this.player2.x);
     }
 
-    if (this.player1Dead && this.player2Dead) {
+    const p1Counts = !this.mobilePlayer || this.mobilePlayer === 'adam';
+    const p2Counts = !this.mobilePlayer || this.mobilePlayer === 'noah';
+    const bothDone = (!p1Counts || this.player1Dead) && (!p2Counts || this.player2Dead);
+    if (bothDone) {
       this.gameOver = true;
       this.time.removeAllEvents();
       showGameOver(this);

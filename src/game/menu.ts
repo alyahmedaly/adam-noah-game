@@ -1,7 +1,7 @@
 // @ts-nocheck
 
 import { createBackground } from './background.ts';
-import { getTextScale } from './scale.ts';
+import { getTextScale, isMobile } from './scale.ts';
 
 const MODES = [
   {
@@ -61,7 +61,11 @@ export class MenuScene extends Phaser.Scene {
       btn.on('pointerover', () => btn.setAlpha(0.7));
       btn.on('pointerout', () => btn.setAlpha(1));
       btn.on('pointerdown', () => {
-        this.scene.start('GameScene', { difficulty: mode.key });
+        if (isMobile()) {
+          this.scene.start('PlayerSelectScene', { difficulty: mode.key });
+        } else {
+          this.scene.start('GameScene', { difficulty: mode.key });
+        }
       });
     });
   }

@@ -14,9 +14,10 @@ const StartGame = async (parent: string): Promise<Phaser.Game> => {
         return gameInstance;
     }
 
-    const [{ GameScene }, { MenuScene }] = await Promise.all([
+    const [{ GameScene }, { MenuScene }, { PlayerSelectScene }] = await Promise.all([
         import('./game.ts'),
         import('./menu.ts'),
+        import('./player-select.ts'),
     ]);
 
     const viewportWidth = window.innerWidth;
@@ -52,7 +53,7 @@ const StartGame = async (parent: string): Promise<Phaser.Game> => {
                 debug: false,
             },
         },
-        scene: [MenuScene, GameScene],
+        scene: [MenuScene, PlayerSelectScene, GameScene],
     };
 
     gameInstance = new Phaser.Game(config);

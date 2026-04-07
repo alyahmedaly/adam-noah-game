@@ -118,7 +118,7 @@ function spawnPlayer(scene, x, groundY, textureKey, ground) {
   return player;
 }
 
-export function createPlayers(scene, groundY, ground) {
+export function createPlayers(scene, groundY, ground, spawnAdam = true, spawnNoah = true) {
   const stageWidth = scene.scale.width;
   const contentScale = getContentScale(scene);
   const textScale = getTextScale(scene);
@@ -138,15 +138,19 @@ export function createPlayers(scene, groundY, ground) {
 
   const player1X = stageWidth * 0.125;
   const player2X = stageWidth * 0.875;
-  const player1 = spawnPlayer(scene, player1X, groundY, 'player1', ground);
-  const player2 = spawnPlayer(scene, player2X, groundY, 'player2', ground);
+  const player1 = spawnAdam ? spawnPlayer(scene, player1X, groundY, 'player1', ground) : null;
+  const player2 = spawnNoah ? spawnPlayer(scene, player2X, groundY, 'player2', ground) : null;
 
-  scene.add.text(player1X, groundY - PLAYER_H - 18, 'Adam', {
-    fontSize: `${Math.round(12 * textScale)}px`, color: colors.label1, fontFamily: 'monospace'
-  }).setOrigin(0.5);
-  scene.add.text(player2X, groundY - PLAYER_H - 18, 'Noah', {
-    fontSize: `${Math.round(12 * textScale)}px`, color: colors.label2, fontFamily: 'monospace'
-  }).setOrigin(0.5);
+  if (spawnAdam) {
+    scene.add.text(player1X, groundY - PLAYER_H - 18, 'Adam', {
+      fontSize: `${Math.round(12 * textScale)}px`, color: colors.label1, fontFamily: 'monospace'
+    }).setOrigin(0.5);
+  }
+  if (spawnNoah) {
+    scene.add.text(player2X, groundY - PLAYER_H - 18, 'Noah', {
+      fontSize: `${Math.round(12 * textScale)}px`, color: colors.label2, fontFamily: 'monospace'
+    }).setOrigin(0.5);
+  }
 
   const wasd = scene.input.keyboard.addKeys({
     left:  Phaser.Input.Keyboard.KeyCodes.A,
@@ -158,12 +162,17 @@ export function createPlayers(scene, groundY, ground) {
   return { player1, player2, wasd, cursors };
 }
 
-export function updatePlayers(scene, player1, player2, wasd, cursors) {
-  const adamInput = getAdamInput(scene, wasd);
-  movePlayer(scene, player1, adamInput.left, adamInput.right, adamInput.jump);
-
-  movePlayer(scene, player2, cursors.left.isDown, cursors.right.isDown,
-    Phaser.Input.Keyboard.JustDown(cursors.up));
+export function updatePlayers(scene, player1, player2, wasd, cursors, touchInput = null, mobilePlayer = null) {
+  if (mobilePlayer === 'adam') {
+    if (player1) movePlayer(scene, player1, touchInput.left, touchInput.right, touchInput.justJump());
+  } else if (mobilePlayer === 'noah') {
+    if (player2) movePlayer(scene, player2, touchInput.left, touchInput.right, touchInput.justJump());
+  } else {
+    const adamInput = getAdamInput(scene, wasd);
+    if (player1) movePlayer(scene, player1, adamInput.left, adamInput.right, adamInput.jump);
+    if (player2) movePlayer(scene, player2, cursors.left.isDown, cursors.right.isDown,
+      Phaser.Input.Keyboard.JustDown(cursors.up));
+  }
 }
 
 export function handlePlayerBump(scene) {
