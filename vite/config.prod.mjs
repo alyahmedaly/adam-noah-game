@@ -17,7 +17,7 @@ const phasermsg = () => {
 }   
 
 export default defineConfig({
-    base: '/adam-noah-game/',
+    base: './',
     logLevel: 'warning',
     build: {
         rollupOptions: {
