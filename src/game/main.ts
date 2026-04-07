@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { getGameViewportSize } from './viewport.ts';
 
 declare global {
     interface Window {
@@ -20,11 +21,7 @@ const StartGame = async (parent: string): Promise<Phaser.Game> => {
         import('./player-select.ts'),
     ]);
 
-    // On mobile, swap dimensions if portrait so the game is always landscape
-    const rawW = window.innerWidth;
-    const rawH = window.innerHeight;
-    const viewportWidth = rawW < rawH ? rawH : rawW;
-    const viewportHeight = rawW < rawH ? rawW : rawH;
+    const { width: viewportWidth, height: viewportHeight } = getGameViewportSize(window.innerWidth, window.innerHeight);
 
     const config: Phaser.Types.Core.GameConfig = {
         type: Phaser.AUTO,
