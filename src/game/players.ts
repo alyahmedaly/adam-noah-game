@@ -171,7 +171,7 @@ export function updatePlayers(scene, player1, player2, wasd, cursors, touchInput
     const adamInput = getAdamInput(scene, wasd);
     if (player1) movePlayer(scene, player1, adamInput.left, adamInput.right, adamInput.jump);
     if (player2) movePlayer(scene, player2, cursors.left.isDown, cursors.right.isDown,
-      Phaser.Input.Keyboard.JustDown(cursors.up));
+      isFreshKeyJump(scene, '_noahKeyJumpPressed', Boolean(cursors.up?.isDown)));
   }
 }
 
@@ -241,7 +241,8 @@ export function getPlayerBumpOutcome(scene, player1, player2) {
 export function getAdamInput(scene, wasd) {
   const keyboardLeft = Boolean(wasd?.left?.isDown);
   const keyboardRight = Boolean(wasd?.right?.isDown);
-  const keyboardJump = Boolean(wasd?.up && Phaser.Input.Keyboard.JustDown(wasd.up));
+  const keyboardUpDown = Boolean(wasd?.up?.isDown);
+  const keyboardJump = isFreshKeyJump(scene, '_adamKeyJumpPressed', keyboardUpDown);
 
   const gamepad = getPrimaryGamepad(scene);
   const axisX = getGamepadAxis(gamepad, 0, 'x');
@@ -326,6 +327,12 @@ function isFreshGamepadJump(scene, isPressed) {
   const wasPressed = scene._adamGamepadJumpPressed ?? false;
   scene._adamGamepadJumpPressed = isPressed;
   return isPressed && !wasPressed;
+}
+
+function isFreshKeyJump(scene, stateKey, isDown) {
+  const wasDown = scene[stateKey] ?? false;
+  scene[stateKey] = isDown;
+  return isDown && !wasDown;
 }
 
 function isGrounded(player) {
